@@ -1,0 +1,4 @@
+/* Estilos personalizados para mejorar la interfaz */
+.table-hover tbody tr:hover {
+    background-color: rgba(128, 128, 128, 0.1);
+}

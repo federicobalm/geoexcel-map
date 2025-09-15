@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %}Seleccionar Columnas - GeoExcel Map{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-6">
+    <div class="card">
+      <div class="card-body">
+        <h3 class="card-title">Confirmar Coordenadas</h3>
+        <p class="card-text">Hemos encontrado múltiples columnas candidatas. Por favor, selecciona las correctas.</p>
+        <form action="{{ url_for('generate_map_step2') }}" method="post">
+          <div class="mb-3">
+            <label for="lat_col" class="form-label">Columna de <strong>Latitud</strong></label>
+            <select name="lat_col" id="lat_col" class="form-select" required>
+              {% for col in options.lat_options %}<option value="{{ col }}">{{ col }}</option>{% endfor %}
+            </select>
+          </div>
+          <div class="mb-3">
+            <label for="lon_col" class="form-label">Columna de <strong>Longitud</strong></label>
+            <select name="lon_col" id="lon_col" class="form-select" required>
+              {% for col in options.lon_options %}<option value="{{ col }}">{{ col }}</option>{% endfor %}
+            </select>
+          </div>
+          <button type="submit" class="btn btn-primary w-100">Confirmar y Generar Mapa</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

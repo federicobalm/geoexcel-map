@@ -1,0 +1,66 @@
+Listado de rutas de carpetas
+El número de serie del volumen es FAE9-0821
+C:.
+|   .gitignore
+|   app.py
+|   estructura.txt
+|   install.bat
+|   install.sh
+|   LICENSE
+|   README.md
+|   requirements.txt
+|   run.bat
+|   
++---sample_data
+|       ejemplo.xlsx
+|       
++---scripts
+|       install_and_run.bat
+|       install_and_run.command
+|       install_and_run.sh
+|       
++---static
+|   |   styles.css
+|   |   
+|   \---resources
+|       +---app_icon
+|       |       icon.ico
+|       |       
+|       \---screenshot
+|               full_heat_and_export_options.png
+|               heat_-_cartodb.png
+|               heat_-_cartodb_positron.png
+|               heat_-_esri.png
+|               heat_-_esri_world.png
+|               heat_-_osm.png
+|               home_dark_mode.png
+|               home_withe_mode.png
+|               puntos_agrupados_-_cartodb.png
+|               puntos_agrupados_-_cartodb_positron.png
+|               puntos_agrupados_-_esri-world.png
+|               puntos_agrupados_-_esri.png
+|               puntos_agrupados_-_osm.png
+|               
++---templates
+|       base.html
+|       index.html
+|       projects.html
+|       project_view.html
+|       select_columns.html
+|       
+\---tools
+    |   db_models.py
+    |   excel_processor.py
+    |   export_handler.py
+    |   image_renderer.py
+    |   map_generator.py
+    |   __init__.py
+    |   
+    \---__pycache__
+            db_models.cpython-313.pyc
+            excel_processor.cpython-313.pyc
+            export_handler.cpython-313.pyc
+            image_renderer.cpython-313.pyc
+            map_generator.cpython-313.pyc
+            __init__.cpython-313.pyc
+            

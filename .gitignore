@@ -1,0 +1,111 @@
+# Entorno Virtual
+.venv/
+
+# Archivos de Python Cache
+__pycache__/
+*.pyc
+
+# Archivos temporales de la app
+temp_map.html
+temp_map_render.png
+data/export_*.kmz
+
+# Archivos de sistema
+.DS_Store```
+
+---
+
+### **Scripts de Instalación**
+
+Crea la carpeta `scripts` dentro de `geoexcel-map`.
+
+#### **Ruta: `geoexcel-map/scripts/install_and_run.bat`**```batch
+@echo off
+SETLOCAL
+
+:: 1. Verificar privilegios de administrador
+echo Verificando privilegios de administrador...
+net session >nul 2>&1
+if %errorlevel% NEQ 0 (
+    echo.
+    echo ERROR: Acceso denegado.
+    echo Por favor, vuelve a ejecutar este script haciendo clic derecho ^> "Ejecutar como administrador".
+    echo.
+    pause
+    exit /b 1
+)
+echo Privilegios correctos.
+
+:: 2. Verificar Python
+echo Verificando instalacion de Python...
+python --version >nul 2>&1
+if %errorlevel% NEQ 0 (
+    echo ERROR: Python no se encuentra en el PATH del sistema.
+    echo Por favor, instala Python 3.8 o superior desde python.org y asegurate de marcar "Add Python to PATH".
+    pause
+    exit /b 1
+)
+echo Python encontrado.
+
+:: 3. Crear entorno virtual
+echo Creando entorno virtual en la carpeta .venv...
+if not exist ..\.venv (
+    python -m venv ..\.venv
+)
+
+:: 4. Instalar dependencias
+echo Activando entorno virtual e instalando dependencias desde requirements.txt...
+call ..\.venv\Scripts\activate.bat
+pip install --upgrade pip
+pip install -r ..\requirements.txt
+if %errorlevel% NEQ 0 (
+    echo ERROR: Fallo la instalacion de las dependencias.
+    pause
+    exit /b 1
+)
+
+:: 5. Crear estructura de datos y solicitar info del usuario
+echo Configurando directorios de datos...
+if not exist ..\data mkdir ..\data
+
+if not exist ..\data\user.json (
+    echo.
+    echo Por favor, introduce tus datos. Se guardaran localmente para firmar tus exportaciones.
+    set /p user_name=" > Nombre: "
+    set /p user_surname=" > Apellido: "
+    set /p user_email=" > Email: "
+    
+    echo Creando archivo de configuracion del usuario...
+    (
+        echo {
+        echo   "nombre": "%user_name%",
+        echo   "apellido": "%user_surname%",
+        echo   "email": "%user_email%"
+        echo }
+    ) > ..\data\user.json
+)
+
+:: 6. Crear script de arranque rapido
+echo Creando script de arranque rapido 'run.bat'...
+(
+    echo @echo off
+    echo echo Iniciando GeoExcel Map...
+    echo call .venv\Scripts\activate.bat
+    echo python app.py
+) > ..\run.bat
+
+:: 7. Iniciar la aplicacion
+echo.
+echo =========================================================
+echo  Instalacion completada. Iniciando GeoExcel Map...
+echo  La aplicacion se abrira en tu navegador.
+echo  Para detenerla, cierra esta ventana o presiona Ctrl+C.
+echo.
+echo  Para volver a iniciarla en el futuro, solo ejecuta el archivo 'run.bat' en la carpeta principal.
+echo =========================================================
+echo.
+
+cd ..
+python app.py
+
+ENDLOCAL
