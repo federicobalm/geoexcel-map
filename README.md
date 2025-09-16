@@ -39,7 +39,7 @@ Esta actualización masiva se centra en la facilidad de uso y la flexibilidad, e
 
 ## ⚙️ Instalación
 
-Para que GeoExcel Map funcione, tu sistema necesita dos herramientas gratuitas. El instalador verificará si las tienes y te guiará si falta alguna.
+Para que GeoExcel Map funcione, tu sistema necesita dos herramientas gratuitas muy comunes. El instalador verificará si las tienes y te guiará si falta alguna.
 
 ### Requisitos Previos
 
@@ -48,13 +48,21 @@ Para que GeoExcel Map funcione, tu sistema necesita dos herramientas gratuitas. 
 | **Python** | El "motor" de la aplicación. | [![Descargar Python](https://img.shields.io/badge/Descargar-Python-blue?style=for-the-badge&logo=python)](https://www.python.org/downloads/) |
 | **Git** | Para descargar el código. | [![Descargar Git](https://img.shields.io/badge/Descargar-Git-orange?style=for-the-badge&logo=git)](https://git-scm.com/downloads/) |
 
-> **¡MUY IMPORTANTE (Windows)!** Durante la instalación de **Python**, asegúrate de marcar la casilla **"Add Python.exe to PATH"**.
+> <div style="background-color: rgba(255, 0, 0, 0.1); border-left: 5px solid red; padding: 10px;">
+>   <strong>¡MUY IMPORTANTE (Windows)!</strong> Durante la instalación de <strong>Python</strong>, asegúrate de marcar la casilla <strong>"Add Python.exe to PATH"</strong> en la primera pantalla del instalador.
+> </div>
 
-### Método de Instalación (Un Solo Comando)
+### Métodos de Instalación
 
-1.  Crea una carpeta nueva y vacía donde quieras instalar la aplicación.
-2.  Abre una terminal en esa carpeta (**CMD como Administrador** en Windows).
-3.  Ejecuta el comando correspondiente a tu sistema:
+Elige **uno** de los siguientes métodos. El Método 1 es el más rápido.
+
+#### Método 1: Instalación Rápida con Comando (Recomendado)
+
+1.  **Crea una carpeta nueva y vacía** donde quieras instalar la aplicación.
+2.  **Abre una terminal en esa carpeta:**
+    *   **Windows:** Abre el **Símbolo del Sistema (CMD) como Administrador**.
+    *   **macOS/Linux:** Abre la **Terminal**.
+3.  **Ejecuta el comando** correspondiente a tu sistema operativo:
 
     **Para Windows:**
     ```cmd
@@ -65,6 +73,23 @@ Para que GeoExcel Map funcione, tu sistema necesita dos herramientas gratuitas. 
     ```bash
     curl -L https://raw.githubusercontent.com/federicobalm/geoexcel-map/main/install.sh -o install.sh && bash install.sh
     ```
+
+#### Método 2: Descarga Manual del ZIP
+
+Si prefieres no usar la terminal para la descarga inicial:
+
+1.  **Descarga el proyecto** haciendo clic en el siguiente botón:
+    <br>
+    <a href="https://github.com/federicobalm/geoexcel-map/archive/refs/heads/main.zip" target="_blank">
+      <img src="https://img.shields.io/badge/Descargar_Proyecto-ZIP-brightgreen?style=for-the-badge&logo=github" alt="Descargar ZIP">
+    </a>
+    <br><br>
+2.  **Descomprime el archivo ZIP** en una carpeta permanente de tu elección.
+3.  **Ejecuta el instalador** que se encuentra dentro de la carpeta que acabas de descomprimir:
+    *   **Windows:** Haz clic derecho en `install.bat` y selecciona **"Ejecutar como administrador"**.
+    *   **macOS/Linux:** Abre una terminal en la carpeta y ejecuta `bash install.sh`.
+
+El script se encargará del resto, configurando todo lo necesario para que la aplicación funcione.
 
 ---
 
