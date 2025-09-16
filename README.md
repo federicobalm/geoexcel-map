@@ -59,7 +59,7 @@ Para que GeoExcel Map funcione, tu sistema necesita dos herramientas gratuitas. 
 | 🛑 ¡ATENCIÓN USUARIOS DE WINDOWS! 🛑 |
 |:---:|
 | **Este paso es OBLIGATORIO para que la instalación funcione.**<br>Durante la instalación de **Python**, en la primera pantalla, debes marcar la casilla de abajo que dice:<br>**"Add Python.exe to PATH"** |
-| ![Instrucción para añadir Python al PATH](URL_DE_IMAGEN_EXPLICATIVA) |
+| ![Instrucción para añadir Python al PATH](https://raw.githubusercontent.com/federicobalm/geoexcel-map/refs/heads/main/static/resources/screenshot/python_path_instruction.png?raw=true) |
 
 ### Métodos de Instalación
 
