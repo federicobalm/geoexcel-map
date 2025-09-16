@@ -56,10 +56,10 @@ Para que GeoExcel Map funcione, tu sistema necesita dos herramientas gratuitas. 
 | **Python** | El "motor" de la aplicación. | [![Descargar Python](https://img.shields.io/badge/Descargar-Python-blue?style=for-the-badge&logo=python)](https://www.python.org/downloads/) |
 | **Git** | Para descargar el código. | [![Descargar Git](https://img.shields.io/badge/Descargar-Git-orange?style=for-the-badge&logo=git)](https://git-scm.com/downloads/) |
 
-> <div align="center" style="background-color: #440000; color: white; border: 1px solid red; padding: 10px; border-radius: 5px;">
->   <strong>¡MUY IMPORTANTE (Windows)!</strong><br>
->   Durante la instalación de <strong>Python</strong>, asegúrate de marcar la casilla <strong>"Add Python.exe to PATH"</strong>.
-> </div>
+| 🛑 ¡ATENCIÓN USUARIOS DE WINDOWS! 🛑 |
+|:---:|
+| **Este paso es OBLIGATORIO para que la instalación funcione.**<br>Durante la instalación de **Python**, en la primera pantalla, debes marcar la casilla de abajo que dice:<br>**"Add Python.exe to PATH"** |
+| ![Instrucción para añadir Python al PATH](URL_DE_IMAGEN_EXPLICATIVA) |
 
 ### Métodos de Instalación
 
