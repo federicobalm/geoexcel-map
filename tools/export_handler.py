@@ -6,19 +6,19 @@ import base64
 import json
 from flask import send_from_directory, render_template_string, flash
 from datetime import datetime
-from .excel_processor import process_excel
-from .image_renderer import render_html_to_png, render_html_to_pdf
+# CAMBIO CLAVE: Importar el nombre de función correcto
+from .excel_processor import process_data
+from .image_renderer import render_html_to_png, render_html_to_pdf, capture_heatmap_canvas_and_bounds
 from .map_generator import create_map, create_heatmap_overlay
 
-# Definir el directorio de datos para las rutas
 DATA_DIR = os.path.join(os.getcwd(), 'data')
 PROJECTS_DIR = os.path.join(DATA_DIR, 'projects')
 
 def export_to_html(project):
-    """Genera y envía un archivo HTML autocontenido."""
     temp_html_path = None
     try:
-        df = process_excel(project.excel_path, project.get_lat_lon_cols())
+        # CAMBIO CLAVE: Usar el nombre de función correcto
+        df = process_data(project.excel_path, project.get_lat_lon_cols())
         if df.empty:
             raise ValueError("No se encontraron datos válidos.")
         interactive_map = create_map(df, project.get_map_params(), project.get_lat_lon_cols(), is_for_export=False)
@@ -34,10 +34,10 @@ def export_to_html(project):
             except OSError: pass
 
 def export_to_pdf(project, user_info):
-    """Genera y envía un PDF con una imagen estática del mapa."""
     png_path = None
     try:
-        df = process_excel(project.excel_path, project.get_lat_lon_cols())
+        # CAMBIO CLAVE: Usar el nombre de función correcto
+        df = process_data(project.excel_path, project.get_lat_lon_cols())
         if df.empty:
             raise ValueError("No se encontraron datos válidos.")
         map_params = project.get_map_params()
@@ -77,16 +77,16 @@ def export_to_pdf(project, user_info):
         if png_path and os.path.exists(png_path):
             os.remove(png_path)
 
-def export_to_kmz(project):
-    """
-    Exporta a KMZ. Para heatmaps, usa el overlay pre-generado.
-    """
+def export_to_kmz(project, user_info):
     try:
+        # CAMBIO CLAVE: Usar el nombre de función correcto
+        df = process_data(project.excel_path, project.get_lat_lon_cols())
+        if df.empty:
+            raise ValueError("No hay puntos para exportar.")
+
         kml = simplekml.Kml(name=project.name)
         
         if project.map_type == 'points':
-            df = process_excel(project.excel_path, project.get_lat_lon_cols())
-            if df.empty: raise ValueError("No hay puntos para exportar.")
             for _, row in df.iterrows():
                 pnt = kml.newpoint(coords=[(row['_lon'], row['_lat'])])
                 desc = ""
@@ -104,7 +104,7 @@ def export_to_kmz(project):
             bounds_json_path = os.path.join(project_dir, 'overlay', 'bounds.json')
 
             if not os.path.exists(overlay_png_path) or not os.path.exists(bounds_json_path):
-                raise FileNotFoundError("No se encontró el archivo de overlay pre-generado. Por favor, guarde el proyecto de nuevo.")
+                raise FileNotFoundError("No se encontró el archivo de overlay pre-generado.")
             
             with open(bounds_json_path, 'r') as f:
                 bounds = json.load(f)
@@ -123,7 +123,8 @@ def export_to_kmz(project):
                 zf.write(kml_path, arcname="doc.kml")
                 zf.write(overlay_png_path, arcname="overlay.png")
             
-            if os.path.exists(kml_path): os.remove(kml_path)
+            if os.path.exists(kml_path):
+                os.remove(kml_path)
 
             return send_from_directory(DATA_DIR, zip_filename, as_attachment=True, download_name=zip_filename)
     

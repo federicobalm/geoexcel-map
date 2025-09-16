@@ -1,48 +1,59 @@
 import pandas as pd
+import os
 
-POSSIBLE_LAT_COLS = ['lat', 'latitude', 'latitud', 'y']
-POSSIBLE_LON_COLS = ['lon', 'lng', 'long', 'longitude', 'longitud', 'x']
+POSSIBLE_LAT_COLS = ['lat', 'latitud', 'latitude', 'y']
+POSSIBLE_LON_COLS = ['lon', 'long', 'longitud', 'longitude', 'lng', 'x']
 
-def find_geo_columns(df):
-    cols = [str(c).lower().strip() for c in df.columns]
-    lat_found = [df.columns[i] for i, c in enumerate(cols) if c in POSSIBLE_LAT_COLS]
-    lon_found = [df.columns[i] for i, c in enumerate(cols) if c in POSSIBLE_LON_COLS]
-    return lat_found, lon_found
+def read_data_file(filepath):
+    """
+    Lee de forma inteligente un archivo de datos, soportando múltiples formatos y detectando separadores.
+    """
+    _, extension = os.path.splitext(filepath)
+    ext = extension.lower()
 
-def process_excel(filepath, selected_cols=None):
     try:
-        df = pd.read_excel(filepath, engine='openpyxl')
-        
-        if selected_cols:
-            # --- LÓGICA MEJORADA PARA PROCESAR COORDENADAS ---
-            lat_col_name = selected_cols['lat']
-            lon_col_name = selected_cols['lon']
-
-            # 1. Asegurarse de que las columnas son de tipo string para poder manipularlas.
-            df[lat_col_name] = df[lat_col_name].astype(str)
-            df[lon_col_name] = df[lon_col_name].astype(str)
-
-            # 2. Reemplazar comas por puntos para estandarizar el separador decimal.
-            df[lat_col_name] = df[lat_col_name].str.replace(',', '.', regex=False)
-            df[lon_col_name] = df[lon_col_name].str.replace(',', '.', regex=False)
-            
-            # 3. Renombrar y convertir a número. 'coerce' convierte los errores en 'NaN' (Not a Number).
-            df.rename(columns={lat_col_name: '_lat', lon_col_name: '_lon'}, inplace=True)
-            df['_lat'] = pd.to_numeric(df['_lat'], errors='coerce')
-            df['_lon'] = pd.to_numeric(df['_lon'], errors='coerce')
-
-            # 4. Eliminar cualquier fila donde la conversión falló.
-            df.dropna(subset=['_lat', '_lon'], inplace=True)
-            return df
-
-        # La lógica de detección de columnas se mantiene igual
-        lat_cols, lon_cols = find_geo_columns(df)
-        if not lat_cols or not lon_cols:
-            return {'error': 'No se encontraron columnas de latitud/longitud.'}
-        if len(lat_cols) > 1 or len(lon_cols) > 1:
-            return {'ambiguous': True, 'lat_options': lat_cols, 'lon_options': lon_cols}
-        
-        return {'ambiguous': False, 'columns': {'lat': lat_cols[0], 'lon': lon_cols[0]}}
-
+        if ext in ['.xlsx', '.xls']:
+            return pd.read_excel(filepath, engine='openpyxl' if ext == '.xlsx' else 'xlrd')
+        elif ext in ['.csv', '.txt']:
+            return pd.read_csv(filepath, sep=None, engine='python', encoding_errors='replace')
+        else:
+            return {'error': f"Formato de archivo no soportado: {ext}"}
     except Exception as e:
-        return {'error': f'Error al leer el archivo Excel: {str(e)}'}
+        return {'error': f"Error al leer el archivo: {e}"}
+
+def analyze_columns(df):
+    """
+    Analiza las columnas de un DataFrame para encontrar candidatas a lat/lon.
+    """
+    cols = {str(c).lower().strip(): str(c) for c in df.columns}
+    
+    lat_found = [original_name for lower_name, original_name in cols.items() if any(key in lower_name for key in POSSIBLE_LAT_COLS)]
+    lon_found = [original_name for lower_name, original_name in cols.items() if any(key in lower_name for key in POSSIBLE_LON_COLS)]
+
+    if len(lat_found) == 1 and len(lon_found) == 1 and lat_found[0] != lon_found[0]:
+        return {'success': True, 'columns': {'lat': lat_found[0], 'lon': lon_found[0]}}
+    else:
+        return {'ambiguous': True, 'all_columns': list(df.columns)}
+
+def process_data(filepath, selected_cols=None):
+    """
+    Procesa el archivo de datos.
+    """
+    df = read_data_file(filepath)
+    if isinstance(df, dict) and 'error' in df:
+        return df
+
+    if selected_cols:
+        lat_col, lon_col = selected_cols['lat'], selected_cols['lon']
+        if lat_col not in df.columns or lon_col not in df.columns:
+            return {'error': 'Las columnas seleccionadas no se encontraron en el archivo.'}
+
+        df.rename(columns={lat_col: '_lat', lon_col: '_lon'}, inplace=True)
+        df['_lat'] = df['_lat'].astype(str).str.replace(',', '.', regex=False)
+        df['_lon'] = df['_lon'].astype(str).str.replace(',', '.', regex=False)
+        df['_lat'] = pd.to_numeric(df['_lat'], errors='coerce')
+        df['_lon'] = pd.to_numeric(df['_lon'], errors='coerce')
+        df.dropna(subset=['_lat', '_lon'], inplace=True)
+        return df
+    
+    return analyze_columns(df)
