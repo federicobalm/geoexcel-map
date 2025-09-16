@@ -6,7 +6,6 @@ import base64
 import json
 from flask import send_from_directory, render_template_string, flash
 from datetime import datetime
-# CAMBIO CLAVE: Importar el nombre de función correcto
 from .excel_processor import process_data
 from .image_renderer import render_html_to_png, render_html_to_pdf, capture_heatmap_canvas_and_bounds
 from .map_generator import create_map, create_heatmap_overlay
@@ -17,10 +16,12 @@ PROJECTS_DIR = os.path.join(DATA_DIR, 'projects')
 def export_to_html(project):
     temp_html_path = None
     try:
-        # CAMBIO CLAVE: Usar el nombre de función correcto
         df = process_data(project.excel_path, project.get_lat_lon_cols())
+        if isinstance(df, dict) and 'error' in df:
+            raise ValueError(df['error'])
         if df.empty:
-            raise ValueError("No se encontraron datos válidos.")
+            raise ValueError("No se encontraron datos válidos para exportar.")
+
         interactive_map = create_map(df, project.get_map_params(), project.get_lat_lon_cols(), is_for_export=False)
         temp_html_path = f"temp_export_{project.id}.html"
         interactive_map.save(temp_html_path)
@@ -36,10 +37,12 @@ def export_to_html(project):
 def export_to_pdf(project, user_info):
     png_path = None
     try:
-        # CAMBIO CLAVE: Usar el nombre de función correcto
         df = process_data(project.excel_path, project.get_lat_lon_cols())
+        if isinstance(df, dict) and 'error' in df:
+            raise ValueError(df['error'])
         if df.empty:
-            raise ValueError("No se encontraron datos válidos.")
+            raise ValueError("No se encontraron datos válidos para exportar.")
+
         map_params = project.get_map_params()
         clean_map = create_map(df, map_params, project.get_lat_lon_cols(), is_for_export=True)
         map_html = clean_map.get_root().render()
@@ -79,8 +82,9 @@ def export_to_pdf(project, user_info):
 
 def export_to_kmz(project, user_info):
     try:
-        # CAMBIO CLAVE: Usar el nombre de función correcto
         df = process_data(project.excel_path, project.get_lat_lon_cols())
+        if isinstance(df, dict) and 'error' in df:
+            raise ValueError(df['error'])
         if df.empty:
             raise ValueError("No hay puntos para exportar.")
 
@@ -102,7 +106,6 @@ def export_to_kmz(project, user_info):
             project_dir = os.path.join(PROJECTS_DIR, str(project.id))
             overlay_png_path = os.path.join(project_dir, 'overlay', 'overlay.png')
             bounds_json_path = os.path.join(project_dir, 'overlay', 'bounds.json')
-
             if not os.path.exists(overlay_png_path) or not os.path.exists(bounds_json_path):
                 raise FileNotFoundError("No se encontró el archivo de overlay pre-generado.")
             

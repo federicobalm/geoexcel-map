@@ -12,11 +12,13 @@ import pandas as pd
 
 from tools.db_models import db, Project
 from tools.excel_processor import process_data, read_data_file
-from tools.map_generator import create_map
+from tools.map_generator import create_map, create_heatmap_overlay
+from tools.image_renderer import capture_heatmap_canvas_and_bounds
 from tools.export_handler import export_to_html, export_to_pdf, export_to_kmz
 
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 DATA_DIR = os.path.join(BASE_DIR, 'data')
+USER_DATA_FILE = os.path.join(DATA_DIR, 'user.json')
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.urandom(24)
 app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{os.path.join(DATA_DIR, "projects.db")}'
@@ -75,6 +77,8 @@ def generate_map_final():
     if 'excel_path' not in session: return redirect(url_for('index'))
     
     df = process_data(session['excel_path'], session['lat_lon_cols'])
+    if isinstance(df, dict) and 'error' in df:
+        flash(df['error'], 'danger'); return redirect(url_for('index'))
     if df.empty: flash('No se encontraron coordenadas válidas.', 'warning'); return redirect(url_for('index'))
     
     map_params = session['form_data']
@@ -103,14 +107,33 @@ def save_project():
     db.session.commit()
     project_dir = os.path.join(app.config['PROJECTS_DATA_FOLDER'], str(new_project.id))
     maps_dir = os.path.join(project_dir, 'maps')
+    overlay_dir = os.path.join(project_dir, 'overlay')
     os.makedirs(maps_dir, exist_ok=True)
-    new_excel_path = os.path.join(project_dir, 'source.xlsx')
-    shutil.move(session['excel_path'], new_excel_path)
-    new_project.excel_path = new_excel_path
+    os.makedirs(overlay_dir, exist_ok=True)
+    
+    original_filename = os.path.basename(session['excel_path'])
+    new_data_path = os.path.join(project_dir, original_filename)
+    shutil.move(session['excel_path'], new_data_path)
+    new_project.excel_path = new_data_path
+
     if 'temp_map_path' in session and os.path.exists(session['temp_map_path']):
         map_filepath = os.path.join(maps_dir, f'map_{datetime.now().strftime("%Y%m%d%H%M%S")}.html')
         shutil.move(session['temp_map_path'], map_filepath)
         new_project.latest_map_html = map_filepath
+        
+    if map_params.get('map_type') == 'heatmap':
+        df = process_data(new_data_path, new_project.get_lat_lon_cols())
+        if not (isinstance(df, dict) and 'error' in df) and not df.empty:
+            try:
+                overlay_map = create_heatmap_overlay(df, map_params)
+                map_html = overlay_map.get_root().render()
+                output_path = os.path.join(overlay_dir, 'overlay.png')
+                bounds = capture_heatmap_canvas_and_bounds(map_html, output_path=output_path)
+                with open(os.path.join(overlay_dir, 'bounds.json'), 'w') as f:
+                    json.dump(bounds, f)
+            except Exception as e:
+                print(f"Error al generar el overlay para el proyecto {new_project.id}: {e}")
+                
     db.session.commit()
     session.clear()
     flash(f'Proyecto "{project_name}" guardado.', 'success')
@@ -145,7 +168,7 @@ def get_export_pdf(id):
 
 @app.route('/projects/<int:id>/export_kmz')
 def get_export_kmz(id):
-    return export_to_kmz(db.get_or_404(Project, id))
+    return export_to_kmz(db.get_or_404(Project, id), get_user_info_dict())
 
 @app.route('/projects/<int:id>/delete', methods=['POST'])
 def delete_project(id):
@@ -154,10 +177,6 @@ def delete_project(id):
     db.session.commit()
     flash(f'Proyecto "{project.name}" eliminado.', 'info')
     return redirect(url_for('list_projects'))
-
-@app.route('/sample')
-def download_sample():
-    return send_from_directory('sample_data', 'ejemplo.xlsx', as_attachment=True)
 
 def get_user_info_dict():
     if not os.path.exists(USER_DATA_FILE): return {}
@@ -182,7 +201,7 @@ def open_browser():
 
 if __name__ == '__main__':
     local_ip = get_local_ip()
-    print(f" * Accede a la aplicación desde cualquier dispositivo en tu red en: http://{local_ip}:5000")
+    print(f" * Accede a la aplicación desde cualquier dispositivo en tu red en: http://{get_local_ip()}:5000")
     if os.environ.get("WERKZEUG_RUN_MAIN") != "true":
         if 'DISPLAY' in os.environ or os.name == 'nt':
              Timer(1, open_browser).start()
