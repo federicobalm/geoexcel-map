@@ -29,6 +29,7 @@ from app.services.exporters import (
     sanitize_filename,
     serialize_for_template,
 )
+from app.services.profiling import build_geographic_profile
 from app.services.sessions import session_store
 
 
@@ -128,6 +129,10 @@ def _build_map_preview_payload(map_request: MapRequest) -> MapPreviewResponse:
         palette = ["#e63946", "#457b9d", "#f4a261", "#2a9d8f", "#6d597a", "#ffb703", "#8ecae6", "#bc4749"]
         category_legend = [{"category": category, "color": palette[index % len(palette)]} for index, category in enumerate(categories)]
 
+    profile = None
+    if map_request.map_type == "profile":
+        profile = build_geographic_profile(cleaned_df, map_request)
+
     return MapPreviewResponse(
         session_id=map_request.session_id,
         map_config=map_request,
@@ -135,6 +140,7 @@ def _build_map_preview_payload(map_request: MapRequest) -> MapPreviewResponse:
         points=points,
         category_legend=category_legend,
         popup_fields=popup_fields,
+        profile=profile,
     )
 
 

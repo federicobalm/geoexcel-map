@@ -19,7 +19,8 @@ GeoExcel Map v3 es una herramienta web pensada para que alumnos y equipos docent
 2. La app sugiere columnas de latitud y longitud.
 3. Valida filas problemáticas y resume errores.
 4. Genera mapas de puntos, calor, cluster o categoria.
-5. Exporta el resultado como `HTML` o `PDF`.
+5. Puede ejecutar perfilado geografico criminal con el algoritmo CGT de Rossmo.
+6. Exporta el resultado como `HTML` o `PDF`.
 
 ## Capturas
 
@@ -42,6 +43,7 @@ Permitir este flujo con la menor friccion posible:
 2. Mapa de calor.
 3. Puntos agrupados.
 4. Puntos por categoria.
+5. Perfil geografico criminal.
 
 ## Casos de uso
 
@@ -56,6 +58,7 @@ Permitir este flujo con la menor friccion posible:
 2. `Leaflet` para mapa interactivo.
 3. `pandas` para lectura y validacion de archivos.
 4. `Playwright` para exportacion a PDF desde una vista controlada del servidor.
+5. `pyproj` para proyeccion UTM previa al calculo del perfil geografico.
 
 ## Arranque rapido
 
@@ -104,6 +107,14 @@ Tambien puedes arrancarla con `uvicorn app.main:app --reload`, pero `python app.
 3. `POST /api/export/html` genera una exportacion interactiva descargable.
 4. `POST /api/export/pdf` renderiza una vista controlada y la imprime a PDF.
 
+## Perfilado geografico criminal
+
+1. Implementa una superficie de jeopardy basada en el algoritmo CGT de Rossmo.
+2. Proyecta coordenadas WGS84 a UTM antes del calculo.
+3. Permite elegir distancia `manhattan` o `euclidean` segun el entorno.
+4. Usa una grilla fija de `200 x 200` celdas para estimar el punto de anclaje.
+5. Expone `buffer`, exponentes `f` y `g`, constante `k` y HS% retrospectivo opcional.
+
 ## Estructura
 
 ```text
@@ -124,6 +135,7 @@ data/
 
 1. `sample_data/plantilla_geoexcel_map.csv` sirve para probar el flujo completo.
 2. `sample_data/ejemplo.xlsx` queda como referencia de formato alternativo.
+3. `sample_data/serie_rossmo_demo.csv` sirve para probar el perfilador con una serie vinculada de 6 hechos.
 
 Ejemplo de plantilla:
 

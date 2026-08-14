@@ -48,6 +48,14 @@ function fillSelect(select, values, selectedValue = "", includeEmpty = true) {
   });
 }
 
+function optionalFloat(value) {
+  if (value === "" || value === null || value === undefined) {
+    return null;
+  }
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
 function renderPreviewTable(rows) {
   const table = byId("preview-table");
   table.innerHTML = "";
@@ -103,6 +111,10 @@ function populateValidation(upload) {
   fillSelect(byId("lon-column"), upload.columns, upload.suggested_lon_column, false);
   fillSelect(byId("label-column"), upload.candidate_label_columns || [], "", true);
   fillSelect(byId("category-column"), upload.candidate_category_columns || [], "", true);
+  byId("export-html").disabled = true;
+  byId("export-pdf").disabled = true;
+  renderLegend({ category_legend: [] });
+  renderProfile(null);
 }
 
 function currentMapRequest() {
@@ -116,6 +128,13 @@ function currentMapRequest() {
     label_column: form.label_column.value || null,
     category_column: form.category_column.value || null,
     heat_radius: Number(form.heat_radius.value),
+    distance_metric: form.distance_metric.value,
+    buffer_radius_m: Number(form.buffer_radius_m.value),
+    decay_exponent_out: Number(form.decay_exponent_out.value),
+    decay_exponent_in: Number(form.decay_exponent_in.value),
+    scale_constant: Number(form.scale_constant.value),
+    known_anchor_lat: optionalFloat(form.known_anchor_lat.value),
+    known_anchor_lon: optionalFloat(form.known_anchor_lon.value),
   };
 }
 
@@ -190,6 +209,45 @@ function renderIssues(summary) {
   });
 }
 
+function renderProfile(profile) {
+  const card = byId("profile-card");
+  const metrics = byId("profile-metrics");
+  const notes = byId("profile-notes");
+  metrics.innerHTML = "";
+  notes.innerHTML = "";
+
+  if (!profile) {
+    card.hidden = true;
+    return;
+  }
+
+  const hsValue = profile.hit_score_percentage === null ? "Sin referencia" : `${profile.hit_score_percentage.toFixed(2)} %`;
+  const anchor = profile.anchor_estimate;
+  const items = [
+    ["Anclaje estimado", `${anchor.lat.toFixed(5)}, ${anchor.lon.toFixed(5)}`],
+    ["Crimenes usados", String(profile.crimes_used)],
+    ["Buffer", `${profile.buffer_radius_m} m`],
+    ["Metrica", profile.distance_metric],
+    ["HS%", hsValue],
+    ["Proyeccion", `EPSG:${profile.projection_epsg}`],
+  ];
+
+  items.forEach(([label, value]) => {
+    const div = document.createElement("div");
+    div.className = "profile-metric";
+    div.innerHTML = `<span>${label}</span><strong>${value}</strong>`;
+    metrics.appendChild(div);
+  });
+
+  [...(profile.warnings || []), ...(profile.notes || [])].forEach((item) => {
+    const li = document.createElement("li");
+    li.textContent = item;
+    notes.appendChild(li);
+  });
+
+  card.hidden = false;
+}
+
 function renderMap(payload) {
   const map = ensureMap();
   setBasemap(map, payload.map_config.tile_layer);
@@ -207,6 +265,44 @@ function renderMap(payload) {
       return [point.lat, point.lon, 1];
     });
     appState.activeLayer = L.heatLayer(heatData, { radius: payload.map_config.heat_radius, blur: 20 });
+  } else if (payload.map_config.map_type === "profile" && payload.profile) {
+    const layer = L.layerGroup();
+    const jeopardy = payload.profile.jeopardy_points || [];
+    if (jeopardy.length) {
+      jeopardy.forEach((item) => bounds.push([item[0], item[1]]));
+      layer.addLayer(L.heatLayer(jeopardy, {
+        radius: 20,
+        blur: 24,
+        minOpacity: 0.28,
+        gradient: {
+          0.2: "#17324d",
+          0.45: "#2a9d8f",
+          0.7: "#ffb703",
+          0.9: "#ef476f",
+          1.0: "#ffffff",
+        },
+      }));
+    }
+
+    payload.points.forEach((point) => {
+      bounds.push([point.lat, point.lon]);
+      const color = legendColors.get(point.category) || "#ff6b6b";
+      layer.addLayer(L.marker([point.lat, point.lon], { icon: markerIcon(color) }).bindPopup(popupHtml(point)));
+    });
+
+    const anchor = payload.profile.anchor_estimate;
+    bounds.push([anchor.lat, anchor.lon]);
+    layer.addLayer(
+      L.circleMarker([anchor.lat, anchor.lon], {
+        radius: 11,
+        color: "#ffffff",
+        weight: 2,
+        fillColor: "#ef476f",
+        fillOpacity: 0.95,
+      }).bindPopup(`<strong>Punto de anclaje estimado</strong><div>Lat: ${anchor.lat.toFixed(6)}</div><div>Lon: ${anchor.lon.toFixed(6)}</div><div>Score: ${anchor.score.toFixed(4)}</div>`),
+    );
+
+    appState.activeLayer = layer;
   } else if (payload.map_config.map_type === "cluster") {
     const layer = L.markerClusterGroup();
     payload.points.forEach((point) => {
@@ -231,6 +327,7 @@ function renderMap(payload) {
   }
   renderLegend(payload);
   renderIssues(payload.summary);
+  renderProfile(payload.profile);
   byId("export-html").disabled = false;
   byId("export-pdf").disabled = false;
 }
@@ -266,7 +363,8 @@ async function downloadExport(url) {
 function syncConditionalFields() {
   const mapType = byId("map-type").value;
   byId("heat-radius-wrap").style.display = mapType === "heatmap" ? "grid" : "none";
-  byId("category-column").disabled = mapType !== "category";
+  byId("profile-config-wrap").hidden = mapType !== "profile";
+  byId("category-column").disabled = !["category", "profile"].includes(mapType);
 }
 
 byId("heat-radius").addEventListener("input", (event) => {

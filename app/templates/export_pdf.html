@@ -62,6 +62,7 @@
 
     const palette = new Map(payload.category_legend.map(item => [item.category, item.color]));
     const points = payload.points || [];
+    const profile = payload.profile;
     const bounds = [];
 
     function markerIcon(color) {
@@ -76,6 +77,25 @@
     if (config.map_type === "heatmap") {
       L.heatLayer(points.map(point => [point.lat, point.lon, 1]), { radius: config.heat_radius, blur: 20 }).addTo(map);
       points.forEach(point => bounds.push([point.lat, point.lon]));
+    } else if (config.map_type === "profile" && profile) {
+      const jeopardy = profile.jeopardy_points || [];
+      if (jeopardy.length) {
+        L.heatLayer(jeopardy, {
+          radius: 20,
+          blur: 24,
+          minOpacity: 0.28,
+          gradient: { 0.2: "#17324d", 0.45: "#2a9d8f", 0.7: "#ffb703", 0.9: "#ef476f", 1.0: "#ffffff" },
+        }).addTo(map);
+        jeopardy.forEach(point => bounds.push([point[0], point[1]]));
+      }
+      points.forEach(point => {
+        bounds.push([point.lat, point.lon]);
+        const color = palette.get(point.category) || "#e63946";
+        L.marker([point.lat, point.lon], { icon: markerIcon(color) }).addTo(map);
+      });
+      const anchor = profile.anchor_estimate;
+      bounds.push([anchor.lat, anchor.lon]);
+      L.circleMarker([anchor.lat, anchor.lon], { radius: 10, color: "#ffffff", weight: 2, fillColor: "#ef476f", fillOpacity: 0.95 }).addTo(map);
     } else if (config.map_type === "cluster") {
       const clusters = L.markerClusterGroup();
       points.forEach(point => {
@@ -103,6 +123,7 @@
       ["Filas validas", summary.valid_rows],
       ["Filas observadas", summary.invalid_rows],
       ["Tipo de mapa", config.map_type],
+      ...(profile ? [["Crimenes usados", profile.crimes_used], ["Buffer Rossmo", `${profile.buffer_radius_m} m`]] : []),
     ].forEach(([label, value]) => {
       const div = document.createElement("div");
       div.className = "summary-card";
@@ -115,11 +136,13 @@
       <div>Mapa base: ${config.tile_layer}</div>
       <div>Latitud: ${config.lat_column}</div>
       <div>Longitud: ${config.lon_column}</div>
+      ${profile ? `<div>Metrica: ${profile.distance_metric}</div><div>EPSG: ${profile.projection_epsg}</div>` : ""}
     `;
 
     const issueList = document.getElementById("issues-list");
-    if (summary.invalid_breakdown.length) {
-      summary.invalid_breakdown.forEach(item => {
+    const issueItems = [...summary.invalid_breakdown, ...(profile ? [...profile.warnings, ...profile.notes] : [])];
+    if (issueItems.length) {
+      issueItems.forEach(item => {
         const li = document.createElement("li");
         li.textContent = item;
         issueList.appendChild(li);

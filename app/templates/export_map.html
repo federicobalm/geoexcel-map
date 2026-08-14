@@ -50,6 +50,7 @@
     L.tileLayer(tile.url, tile.options).addTo(map);
 
     const legendColor = new Map(payload.category_legend.map(item => [item.category, item.color]));
+    const profile = payload.profile;
 
     function popupHtml(point) {
       const rows = Object.entries(point.popup).map(([key, value]) => `<div><strong>${key}:</strong> ${value}</div>`).join("");
@@ -72,6 +73,27 @@
       const heatData = points.map(point => [point.lat, point.lon, 1]);
       L.heatLayer(heatData, { radius: config.heat_radius, blur: 20 }).addTo(map);
       points.forEach(point => bounds.push([point.lat, point.lon]));
+    } else if (config.map_type === "profile" && profile) {
+      const jeopardy = profile.jeopardy_points || [];
+      if (jeopardy.length) {
+        L.heatLayer(jeopardy, {
+          radius: 20,
+          blur: 24,
+          minOpacity: 0.28,
+          gradient: { 0.2: "#17324d", 0.45: "#2a9d8f", 0.7: "#ffb703", 0.9: "#ef476f", 1.0: "#ffffff" },
+        }).addTo(map);
+        jeopardy.forEach(point => bounds.push([point[0], point[1]]));
+      }
+      points.forEach(point => {
+        bounds.push([point.lat, point.lon]);
+        const color = legendColor.get(point.category) || "#ff6b6b";
+        L.marker([point.lat, point.lon], { icon: markerIcon(color) }).bindPopup(popupHtml(point)).addTo(map);
+      });
+      const anchor = profile.anchor_estimate;
+      bounds.push([anchor.lat, anchor.lon]);
+      L.circleMarker([anchor.lat, anchor.lon], { radius: 10, color: "#ffffff", weight: 2, fillColor: "#ef476f", fillOpacity: 0.95 })
+        .bindPopup(`<strong>Punto de anclaje estimado</strong><div>Lat: ${anchor.lat.toFixed(6)}</div><div>Lon: ${anchor.lon.toFixed(6)}</div>`)
+        .addTo(map);
     } else if (config.map_type === "cluster") {
       const clusterLayer = L.markerClusterGroup();
       points.forEach(point => {
@@ -101,6 +123,10 @@
       ["Observadas", summary.invalid_rows],
       ["Tipo", config.map_type],
     ];
+    if (profile) {
+      items.push(["Crimenes", profile.crimes_used]);
+      items.push(["Buffer", `${profile.buffer_radius_m} m`]);
+    }
     items.forEach(([label, value]) => {
       const card = document.createElement("div");
       card.className = "card";
