@@ -1,6 +1,6 @@
 from typing import Literal
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 
 class UploadSummary(BaseModel):
@@ -35,6 +35,12 @@ class MapRequest(BaseModel):
     label_column: str | None = None
     category_column: str | None = None
     heat_radius: int = Field(default=25, ge=5, le=60)
+
+    @model_validator(mode="after")
+    def validate_map_specific_fields(self) -> "MapRequest":
+        if self.map_type == "category" and not self.category_column:
+            raise ValueError("Debes seleccionar una columna de categoria para ese tipo de mapa.")
+        return self
 
 
 class MapSummary(BaseModel):

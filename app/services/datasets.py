@@ -174,6 +174,11 @@ def validate_coordinates(df: pd.DataFrame, lat_column: str, lon_column: str) -> 
 
 
 def build_points_payload(df: pd.DataFrame, lat_column: str, lon_column: str, label_column: str | None, category_column: str | None) -> tuple[list[dict], list[str]]:
+    if label_column and label_column not in df.columns:
+        raise AppError("La columna elegida para etiqueta no existe en la sesion cargada.")
+    if category_column and category_column not in df.columns:
+        raise AppError("La columna elegida para categoria no existe en la sesion cargada.")
+
     popup_fields = [column for column in df.columns if column not in {"lat", "lon", lat_column, lon_column, "latitud_original", "longitud_original"}]
     popup_fields = popup_fields[:6]
 
