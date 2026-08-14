@@ -1,0 +1,153 @@
+{% extends "base.html" %}
+{% block title %}{{ app_name }}{% endblock %}
+{% block body %}
+<div class="page-shell">
+  <header class="hero-band">
+    <div>
+      <p class="eyebrow">GeoExcel Map v3</p>
+      <h1>Mapas listos para analizar, no para sufrir la instalacion.</h1>
+      <p class="hero-copy">Subi una planilla, valida las coordenadas y compara distintas representaciones del mismo caso en minutos.</p>
+    </div>
+    <div class="hero-card">
+      <span>Objetivo docente</span>
+      <strong>Transformar datos tabulares en mapas claros para analisis territorial, criminalistico y forense.</strong>
+      <a href="/sample_data/plantilla_geoexcel_map.csv" download class="ghost-link">Descargar plantilla modelo</a>
+    </div>
+  </header>
+
+  <main class="workspace-grid">
+    <section class="panel panel-upload">
+      <div class="panel-header">
+        <p class="panel-step">Paso 1</p>
+        <h2>Cargar archivo</h2>
+        <p>Formatos aceptados: <code>.csv</code> y <code>.xlsx</code>.</p>
+      </div>
+      <form id="upload-form" class="stack-form">
+        <label class="file-dropzone" for="data-file">
+          <input id="data-file" name="file" type="file" accept=".csv,.xlsx" required>
+          <span class="drop-title">Seleccionar archivo</span>
+          <span class="drop-help">Archivos de hasta 15 MB</span>
+        </label>
+        <button type="submit" class="primary-button">Analizar archivo</button>
+      </form>
+      <div id="upload-feedback" class="inline-feedback" hidden></div>
+    </section>
+
+    <section class="panel panel-validation">
+      <div class="panel-header">
+        <p class="panel-step">Paso 2</p>
+        <h2>Validacion guiada</h2>
+        <p>Confirma las columnas y revisa los problemas detectados.</p>
+      </div>
+      <div id="validation-empty" class="empty-state">
+        <strong>Sin archivo cargado</strong>
+        <p>La vista previa y las sugerencias apareceran aca.</p>
+      </div>
+      <div id="validation-content" hidden>
+        <div class="summary-strip">
+          <div><span>Archivo</span><strong id="summary-filename">-</strong></div>
+          <div><span>Filas</span><strong id="summary-rows">0</strong></div>
+          <div><span>Columnas</span><strong id="summary-columns">0</strong></div>
+        </div>
+        <div id="validation-notes" class="note-list"></div>
+        <form id="map-config-form" class="config-grid">
+          <div>
+            <label for="lat-column">Latitud</label>
+            <select id="lat-column" name="lat_column" required></select>
+          </div>
+          <div>
+            <label for="lon-column">Longitud</label>
+            <select id="lon-column" name="lon_column" required></select>
+          </div>
+          <div>
+            <label for="map-type">Tipo de mapa</label>
+            <select id="map-type" name="map_type">
+              <option value="points">Puntos</option>
+              <option value="heatmap">Mapa de calor</option>
+              <option value="cluster">Puntos agrupados</option>
+              <option value="category">Puntos por categoria</option>
+            </select>
+          </div>
+          <div>
+            <label for="tile-layer">Mapa base</label>
+            <select id="tile-layer" name="tile_layer">
+              <option>OpenStreetMap</option>
+              <option>CartoDB Positron</option>
+              <option>CartoDB DarkMatter</option>
+              <option>Esri World Imagery</option>
+            </select>
+          </div>
+          <div>
+            <label for="label-column">Campo de etiqueta</label>
+            <select id="label-column" name="label_column"></select>
+          </div>
+          <div>
+            <label for="category-column">Campo de categoria</label>
+            <select id="category-column" name="category_column"></select>
+          </div>
+          <div class="range-block" id="heat-radius-wrap">
+            <label for="heat-radius">Radio del calor</label>
+            <input id="heat-radius" name="heat_radius" type="range" min="5" max="60" value="25">
+            <strong id="heat-radius-value">25</strong>
+          </div>
+          <div class="config-actions">
+            <button type="submit" class="primary-button">Generar vista del mapa</button>
+          </div>
+        </form>
+
+        <div class="preview-table-wrap">
+          <div class="subhead-row">
+            <h3>Vista previa de datos</h3>
+            <span>Primeras filas del archivo</span>
+          </div>
+          <div class="table-shell">
+            <table id="preview-table"></table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel panel-map panel-wide">
+      <div class="panel-header">
+        <p class="panel-step">Paso 3</p>
+        <h2>Mapa y resultados</h2>
+        <p>Compara la representacion espacial y exporta el resultado.</p>
+      </div>
+      <div class="result-grid">
+        <div class="map-frame">
+          <div id="map"></div>
+          <div id="map-empty" class="map-placeholder">El mapa aparecera aca cuando generes una vista previa.</div>
+        </div>
+        <aside class="result-sidebar">
+          <div class="metric-card">
+            <span>Filas validas</span>
+            <strong id="valid-rows">0</strong>
+          </div>
+          <div class="metric-card metric-card-alt">
+            <span>Filas con problemas</span>
+            <strong id="invalid-rows">0</strong>
+          </div>
+          <div class="issues-card">
+            <h3>Hallazgos del archivo</h3>
+            <ul id="issues-list"></ul>
+          </div>
+          <div class="legend-card" id="legend-card" hidden>
+            <h3>Leyenda</h3>
+            <ul id="legend-list"></ul>
+          </div>
+          <div class="export-actions">
+            <button id="export-html" class="secondary-button" disabled>Exportar HTML</button>
+            <button id="export-pdf" class="primary-button" disabled>Exportar PDF</button>
+          </div>
+        </aside>
+      </div>
+    </section>
+  </main>
+</div>
+{% endblock %}
+{% block scripts %}
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet.heat/dist/leaflet-heat.js"></script>
+<script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+<script src="{{ url_for('static', path='app.js') }}"></script>
+{% endblock %}

@@ -1,0 +1,5 @@
+caso,latitud,longitud,tipo,zona,descripcion
+Caso 1,-34.6037,-58.3816,Robo,Centro,Hecho en zona comercial
+Caso 2,-34.6158,-58.4333,Hurto,Sur,Registro cercano a avenida principal
+Caso 3,-34.5895,-58.3974,Lesiones,Norte,Intervencion policial
+Caso 4,-34.6083,-58.3712,Robo,Centro,Evento con multiples testigos

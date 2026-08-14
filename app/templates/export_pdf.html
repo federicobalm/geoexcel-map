@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{ title }}</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <style>
+    body { margin: 0; font-family: Arial, sans-serif; background: #f4f7fb; color: #1d2733; }
+    .report-shell { padding: 18px 22px; }
+    .report-head { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px; }
+    .report-head h1 { margin: 0; font-size: 24px; }
+    .report-head p { margin: 6px 0 0; color: #4d6175; }
+    .meta-box { background: white; border: 1px solid #d6e0ea; border-radius: 12px; padding: 12px 14px; min-width: 240px; }
+    .summary-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 16px; }
+    .summary-card { background: white; border: 1px solid #d6e0ea; border-radius: 14px; padding: 14px; }
+    .summary-card span { display: block; color: #607387; font-size: 11px; text-transform: uppercase; margin-bottom: 8px; }
+    .summary-card strong { font-size: 22px; }
+    #map { height: 430px; border: 1px solid #d6e0ea; border-radius: 18px; overflow: hidden; background: white; }
+    .issues-box { margin-top: 16px; background: white; border: 1px solid #d6e0ea; border-radius: 14px; padding: 14px 18px; }
+    .issues-box h2 { margin-top: 0; font-size: 18px; }
+    .issues-box li { margin-bottom: 6px; }
+  </style>
+</head>
+<body>
+  <div class="report-shell">
+    <div class="report-head">
+      <div>
+        <h1>{{ title }}</h1>
+        <p>Reporte espacial exportado desde GeoExcel Map v3.</p>
+      </div>
+      <div class="meta-box" id="meta-box"></div>
+    </div>
+    <div class="summary-row" id="summary-row"></div>
+    <div id="map"></div>
+    <section class="issues-box">
+      <h2>Observaciones del archivo</h2>
+      <ul id="issues-list"></ul>
+    </section>
+  </div>
+
+  <script>
+    window.GEOEXCEL_EXPORT_PAYLOAD = {{ map_payload_json | safe }};
+    window.GEOEXCEL_EXPORT_SUMMARY = {{ summary_json | safe }};
+  </script>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://unpkg.com/leaflet.heat/dist/leaflet-heat.js"></script>
+  <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+  <script>
+    const tileLayers = {
+      "OpenStreetMap": { url: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", options: { maxZoom: 19, attribution: "OpenStreetMap" } },
+      "CartoDB Positron": { url: "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png", options: { attribution: "CARTO", subdomains: "abcd", maxZoom: 20 } },
+      "CartoDB DarkMatter": { url: "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", options: { attribution: "CARTO", subdomains: "abcd", maxZoom: 20 } },
+      "Esri World Imagery": { url: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}", options: { attribution: "Esri", maxZoom: 18 } },
+    };
+    const payload = window.GEOEXCEL_EXPORT_PAYLOAD;
+    const summary = window.GEOEXCEL_EXPORT_SUMMARY;
+    const config = payload.map_config;
+    const map = L.map("map", { zoomControl: false, attributionControl: false });
+    const tile = tileLayers[config.tile_layer] || tileLayers["OpenStreetMap"];
+    L.tileLayer(tile.url, tile.options).addTo(map);
+
+    const palette = new Map(payload.category_legend.map(item => [item.category, item.color]));
+    const points = payload.points || [];
+    const bounds = [];
+
+    function markerIcon(color) {
+      return L.divIcon({
+        className: "",
+        html: `<div style="width:14px;height:14px;border-radius:50%;background:${color};border:2px solid white;box-shadow:0 0 0 2px rgba(0,0,0,.18);"></div>`,
+        iconSize: [14, 14],
+        iconAnchor: [7, 7],
+      });
+    }
+
+    if (config.map_type === "heatmap") {
+      L.heatLayer(points.map(point => [point.lat, point.lon, 1]), { radius: config.heat_radius, blur: 20 }).addTo(map);
+      points.forEach(point => bounds.push([point.lat, point.lon]));
+    } else if (config.map_type === "cluster") {
+      const clusters = L.markerClusterGroup();
+      points.forEach(point => {
+        bounds.push([point.lat, point.lon]);
+        clusters.addLayer(L.marker([point.lat, point.lon], { icon: markerIcon("#ff6b6b") }));
+      });
+      map.addLayer(clusters);
+    } else {
+      points.forEach(point => {
+        bounds.push([point.lat, point.lon]);
+        const color = config.map_type === "category" ? (palette.get(point.category) || "#457b9d") : "#e63946";
+        L.marker([point.lat, point.lon], { icon: markerIcon(color) }).addTo(map);
+      });
+    }
+
+    if (bounds.length) {
+      map.fitBounds(bounds, { padding: [18, 18] });
+    } else {
+      map.setView([-34.6037, -58.3816], 11);
+    }
+
+    const summaryRow = document.getElementById("summary-row");
+    [
+      ["Total de filas", summary.total_rows],
+      ["Filas validas", summary.valid_rows],
+      ["Filas observadas", summary.invalid_rows],
+      ["Tipo de mapa", config.map_type],
+    ].forEach(([label, value]) => {
+      const div = document.createElement("div");
+      div.className = "summary-card";
+      div.innerHTML = `<span>${label}</span><strong>${value}</strong>`;
+      summaryRow.appendChild(div);
+    });
+
+    document.getElementById("meta-box").innerHTML = `
+      <strong>Configuracion</strong>
+      <div>Mapa base: ${config.tile_layer}</div>
+      <div>Latitud: ${config.lat_column}</div>
+      <div>Longitud: ${config.lon_column}</div>
+    `;
+
+    const issueList = document.getElementById("issues-list");
+    if (summary.invalid_breakdown.length) {
+      summary.invalid_breakdown.forEach(item => {
+        const li = document.createElement("li");
+        li.textContent = item;
+        issueList.appendChild(li);
+      });
+    } else {
+      const li = document.createElement("li");
+      li.textContent = "No se detectaron problemas en las filas exportadas.";
+      issueList.appendChild(li);
+    }
+
+    window.__EXPORT_READY = true;
+  </script>
+</body>
+</html>

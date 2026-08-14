@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{ title }}</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css">
+  <style>
+    body { margin: 0; font-family: Arial, sans-serif; background: #0e1218; color: #edf2f7; }
+    header { padding: 16px 22px; background: #151d27; border-bottom: 1px solid #2c3947; }
+    h1 { margin: 0; font-size: 22px; }
+    p { margin: 6px 0 0; color: #c8d2de; }
+    #map { height: 76vh; width: 100%; }
+    .summary { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; padding: 14px 22px 24px; }
+    .card { background: #151d27; border: 1px solid #2c3947; border-radius: 14px; padding: 14px; }
+    .card span { display: block; color: #9fb1c5; font-size: 12px; text-transform: uppercase; }
+    .card strong { font-size: 24px; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>{{ title }}</h1>
+    <p>Exportacion interactiva generada por GeoExcel Map v3.</p>
+  </header>
+  <div id="map"></div>
+  <section class="summary"></section>
+
+  <script>
+    window.GEOEXCEL_EXPORT_PAYLOAD = {{ map_payload_json | safe }};
+    window.GEOEXCEL_EXPORT_SUMMARY = {{ summary_json | safe }};
+  </script>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://unpkg.com/leaflet.heat/dist/leaflet-heat.js"></script>
+  <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+  <script>
+    const tileLayers = {
+      "OpenStreetMap": { url: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", options: { maxZoom: 19, attribution: "OpenStreetMap" } },
+      "CartoDB Positron": { url: "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png", options: { attribution: "CARTO", subdomains: "abcd", maxZoom: 20 } },
+      "CartoDB DarkMatter": { url: "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", options: { attribution: "CARTO", subdomains: "abcd", maxZoom: 20 } },
+      "Esri World Imagery": { url: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}", options: { attribution: "Esri", maxZoom: 18 } },
+    };
+
+    const payload = window.GEOEXCEL_EXPORT_PAYLOAD;
+    const summary = window.GEOEXCEL_EXPORT_SUMMARY;
+    const config = payload.map_config;
+    const map = L.map("map", { zoomControl: true });
+    const tile = tileLayers[config.tile_layer] || tileLayers["OpenStreetMap"];
+    L.tileLayer(tile.url, tile.options).addTo(map);
+
+    const legendColor = new Map(payload.category_legend.map(item => [item.category, item.color]));
+
+    function popupHtml(point) {
+      const rows = Object.entries(point.popup).map(([key, value]) => `<div><strong>${key}:</strong> ${value}</div>`).join("");
+      return `${point.label ? `<h4>${point.label}</h4>` : ""}${rows || "<span>Sin atributos adicionales</span>"}`;
+    }
+
+    function markerIcon(color) {
+      return L.divIcon({
+        className: "",
+        html: `<div style="width:16px;height:16px;border-radius:50%;background:${color};border:2px solid white;box-shadow:0 0 0 2px rgba(0,0,0,.25);"></div>`,
+        iconSize: [16, 16],
+        iconAnchor: [8, 8],
+      });
+    }
+
+    const points = payload.points || [];
+    const bounds = [];
+
+    if (config.map_type === "heatmap") {
+      const heatData = points.map(point => [point.lat, point.lon, 1]);
+      L.heatLayer(heatData, { radius: config.heat_radius, blur: 20 }).addTo(map);
+      points.forEach(point => bounds.push([point.lat, point.lon]));
+    } else if (config.map_type === "cluster") {
+      const clusterLayer = L.markerClusterGroup();
+      points.forEach(point => {
+        bounds.push([point.lat, point.lon]);
+        const marker = L.marker([point.lat, point.lon], { icon: markerIcon("#ff6b6b") }).bindPopup(popupHtml(point));
+        clusterLayer.addLayer(marker);
+      });
+      map.addLayer(clusterLayer);
+    } else {
+      points.forEach(point => {
+        bounds.push([point.lat, point.lon]);
+        const color = config.map_type === "category" ? (legendColor.get(point.category) || "#5ca8ff") : "#ff6b6b";
+        L.marker([point.lat, point.lon], { icon: markerIcon(color) }).bindPopup(popupHtml(point)).addTo(map);
+      });
+    }
+
+    if (bounds.length) {
+      map.fitBounds(bounds, { padding: [20, 20] });
+    } else {
+      map.setView([-34.6037, -58.3816], 11);
+    }
+
+    const summaryRoot = document.querySelector(".summary");
+    const items = [
+      ["Total", summary.total_rows],
+      ["Validas", summary.valid_rows],
+      ["Observadas", summary.invalid_rows],
+      ["Tipo", config.map_type],
+    ];
+    items.forEach(([label, value]) => {
+      const card = document.createElement("div");
+      card.className = "card";
+      card.innerHTML = `<span>${label}</span><strong>${value}</strong>`;
+      summaryRoot.appendChild(card);
+    });
+  </script>
+</body>
+</html>
