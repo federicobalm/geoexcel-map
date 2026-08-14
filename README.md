@@ -62,6 +62,9 @@ Permitir este flujo con la menor friccion posible:
 
 ## Arranque rapido
 
+En Windows puedes abrir la app con un doble clic sobre `iniciar_geoexcel_map.bat`.
+En la primera ejecucion crea el entorno virtual, instala dependencias y prepara Chromium automaticamente.
+
 ```bash
 python -m venv .venv
 pip install -r requirements.txt
