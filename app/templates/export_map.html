@@ -3,7 +3,8 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Informe de analisis espacial - {{ title }}</title>
+  <title>Simulación académica - {{ title }}</title>
+  {% include 'academic_notice_style.html' %}
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
   <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css">
   <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css">
@@ -59,16 +60,17 @@
 <body>
   <header class="hero">
     <div class="hero-main">
-      <p class="eyebrow">GeoExcel Map v3 | Documento tecnico exportado</p>
-      <h1>Informe de analisis espacial</h1>
-      <p class="subtitle">Producto analitico estructurado para lectura profesional: calidad del dataset, parametros del modelo, superficie de prioridad, interpretacion sistematizada, criterio del especialista y limitaciones operativas.</p>
+      <p class="eyebrow">GeoExcel Map v3 | Simulación académica</p>
+      <h1>Informe académico de análisis espacial</h1>
+      <p class="subtitle">Ejercicio didáctico con datos ficticios: representación cartográfica, parámetros del modelo e interpretación del estudiante. Todos los resultados son simulados.</p>
     </div>
     <aside class="hero-card">
       <span>Clasificacion</span>
-      <strong>Analisis espacial especializado</strong>
+      <strong>Simulación · uso exclusivamente académico</strong>
       <p id="hero-summary">Preparando informe...</p>
     </aside>
   </header>
+  {% include 'academic_notice.html' %}
 
   <main class="layout">
     <aside class="stack">
@@ -108,17 +110,17 @@
       </section>
 
       <section class="panel pad">
-        <h2>Analisis del especialista</h2>
+        <h2>Interpretación del estudiante</h2>
         <div class="narrative" id="personal-analysis"></div>
       </section>
 
       <section class="panel pad">
         <h2>Alcance y limitaciones</h2>
-        <div class="notice">Este informe no identifica autores ni predice hechos futuros. La superficie prioritaria debe emplearse como soporte para priorizar recursos, contrastar hipotesis, organizar verificaciones territoriales y documentar decisiones analiticas bajo supervision profesional.</div>
+        <div class="notice">Este ejercicio contiene exclusivamente resultados simulados para uso académico. No representa una investigación real ni forma parte de un procedimiento de acusación. No constituye evidencia, prueba pericial ni fundamento para atribuir responsabilidad a persona alguna.</div>
       </section>
     </section>
   </main>
-  <footer>Generado por GeoExcel Map v3. La validez del resultado depende de la calidad, vinculacion, temporalidad y representatividad del dataset cargado.</footer>
+  <footer>GeoExcel Map · Resultados simulados para uso exclusivamente académico. Sin carácter investigativo ni acusatorio.</footer>
 
   <script>
     window.GEOEXCEL_EXPORT_PAYLOAD = {{ map_payload_json | safe }};
@@ -280,10 +282,10 @@
     const reportDate = payload.cartography.created_at;
     const anchor = profile ? profile.anchor_estimate : null;
     const executiveText = profile
-      ? `Se procesaron ${summary.valid_rows} registros geograficamente validos sobre ${summary.total_rows} filas declaradas. El modelo Rossmo/CGT genero una superficie de prioridad y estimo un punto de anclaje aproximado en latitud ${anchor.lat.toFixed(6)} y longitud ${anchor.lon.toFixed(6)}. La lectura profesional recomendada es utilizar el resultado como guia de priorizacion territorial, no como determinacion concluyente.`
-      : `Se procesaron ${summary.valid_rows} registros geograficamente validos sobre ${summary.total_rows} filas declaradas. El producto consolida la distribucion espacial de eventos y facilita evaluar concentraciones, dispersion y consistencia geografica.`;
+      ? `En esta simulación académica se procesaron ${summary.valid_rows} registros ficticios con coordenadas válidas sobre ${summary.total_rows} filas declaradas. El modelo Rossmo/CGT estimó un anclaje didáctico en latitud ${anchor.lat.toFixed(6)} y longitud ${anchor.lon.toFixed(6)}. El resultado sirve únicamente para estudiar el comportamiento del modelo en clase; no representa una investigación ni un procedimiento de acusación.`
+      : `En esta simulación académica se procesaron ${summary.valid_rows} registros ficticios con coordenadas válidas sobre ${summary.total_rows} filas declaradas. El mapa permite estudiar concentraciones y dispersión espacial en clase; no representa una investigación ni un procedimiento de acusación.`;
 
-    document.getElementById("hero-summary").textContent = profile ? "Informe de perfil geografico con superficie prioritaria, parametros reproducibles y observaciones de calidad." : "Informe cartografico de distribucion espacial con control basico de datos.";
+    document.getElementById("hero-summary").textContent = "Resultados simulados con datos ficticios para la enseñanza. Sin carácter investigativo, pericial ni acusatorio.";
     document.getElementById("executive-summary").textContent = executiveText;
     document.getElementById("map-caption").textContent = profile ? "Mapa interactivo: hechos validados, superficie de peligro relativa y punto de anclaje estimado." : "Mapa interactivo construido con las coordenadas validas del dataset.";
     document.getElementById("summary-row").innerHTML = [

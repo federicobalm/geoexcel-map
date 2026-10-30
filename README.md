@@ -13,6 +13,14 @@
 
 GeoExcel Map v3 es una herramienta web pensada para que alumnos y equipos docentes trabajen con datos geograficos sin depender de SIG pesados ni flujos manuales de limpieza previos.
 
+## Uso exclusivamente académico · resultados simulados
+
+> **Todos los mapas, análisis, estimaciones y resultados generados por GeoExcel Map son simulaciones destinadas exclusivamente a la enseñanza y al aprendizaje con datos ficticios.**
+>
+> **Bajo ningún motivo representan una investigación real ni forman parte de un procedimiento de acusación. No constituyen evidencia, prueba pericial ni fundamento para imputar, acusar o atribuir responsabilidad a persona alguna. No deben utilizarse para esos fines.**
+>
+> Los informes HTML y PDF incluyen expresamente esta aclaración. La aplicación debe utilizarse únicamente con datos ficticios para ejercicios académicos.
+
 ## Instalación para alumnos · Windows
 
 En **Windows 10/11 de 64 bits**, abrí **PowerShell** (sin ejecutar como administrador), pegá este único comando y presioná Enter:
@@ -79,79 +87,6 @@ Pruebas de las reglas: `python -m unittest discover -s tests -v`.
 
 Prueba de navegador con el servidor en marcha: `python tools/verify_flows.py --url http://127.0.0.1:8000`. Recorre todos los tipos de mapa, el asistente Rossmo, errores de validación y exportaciones HTML/PDF. Requiere Chromium instalado y conexión a los proveedores de mapas.
 
-## Casos de uso
-
-1. Analisis territorial en entornos educativos.
-2. Trabajo con hechos criminalisticos o forenses georreferenciados.
-3. Revision rapida de calidad de coordenadas antes de compartir resultados.
-4. Entrega de mapas exportables sin pedir al alumno herramientas extra.
-
-## Stack
-
-1. `FastAPI` para backend.
-2. `Leaflet` para mapa interactivo.
-3. `pandas` para lectura y validacion de archivos.
-4. `Playwright` para exportacion a PDF desde una vista controlada del servidor.
-5. `pyproj` para proyeccion UTM previa al calculo del perfil geografico.
-
-## Arranque rapido
-
-En Windows puedes abrir la app con un doble clic sobre `iniciar_geoexcel_map.bat`.
-En la primera ejecucion crea el entorno virtual, instala dependencias y prepara Chromium automaticamente.
-El lanzador espera a `/health/ready` antes de abrir el navegador. Si el servidor falla o el puerto está ocupado, informa el error. El arranque por BAT no usa recarga automática; `python app.py` sigue disponible para desarrollo.
-
-```bash
-python -m venv .venv
-. .venv/bin/activate
-pip install -r requirements.txt
-playwright install chromium
-python app.py
-```
-
-Luego abre `http://127.0.0.1:8000`.
-
-## Desarrollo local
-
-1. Crear entorno virtual.
-2. Instalar dependencias.
-3. Instalar Chromium para Playwright.
-4. Ejecutar la app.
-
-```bash
-python -m venv .venv
-. .venv/bin/activate
-pip install -r requirements.txt
-playwright install chromium
-python app.py
-```
-
-En Windows PowerShell:
-
-```powershell
-py -m venv .venv
-.\.venv\Scripts\Activate.ps1
-pip install -r requirements.txt
-playwright install chromium
-python app.py
-```
-
-La aplicacion queda disponible en `http://127.0.0.1:8000`.
-
-Tambien puedes arrancarla con `uvicorn app.main:app --reload`, pero `python app.py` ya respeta `app_host`, `app_port` y `app_env` desde `app/config.py` o `.env`.
-
-## Flujo funcional
-
-1. `POST /api/upload` lee el archivo y crea una sesion temporal.
-2. `POST /api/map-preview` valida coordenadas y arma el payload del mapa.
-3. `POST /api/export/html` genera una exportacion interactiva descargable.
-4. `POST /api/export/pdf` renderiza una vista controlada y la imprime a PDF.
-
-## Flujos separados
-
-1. `http://127.0.0.1:8000/` concentra los mapas generales: puntos, Hot map, KDE, coropleta por grilla, proporcionales, cluster y categoria.
-2. `http://127.0.0.1:8000/rossmo` concentra exclusivamente el flujo de perfilado geografico criminal.
-3. El flujo Rossmo esta organizado de forma secuencial: carga, verificacion, analisis computacional, previsualizacion, analisis interpretativo y exportacion.
-
 ## Perfilado geografico criminal
 
 1. Implementa una superficie de jeopardy basada en el algoritmo CGT de Rossmo.
@@ -159,22 +94,6 @@ Tambien puedes arrancarla con `uvicorn app.main:app --reload`, pero `python app.
 3. Permite elegir distancia `manhattan` o `euclidean` segun el entorno.
 4. Usa una grilla fija de `200 x 200` celdas para estimar el punto de anclaje.
 5. Expone `buffer`, exponentes `f` y `g`, constante `k` y HS% retrospectivo opcional.
-
-## Estructura
-
-```text
-app/
-  __init__.py
-  main.py
-  config.py
-  errors.py
-  models.py
-  services/
-  static/
-  templates/
-sample_data/
-data/
-```
 
 ## Datos de ejemplo
 
@@ -197,17 +116,8 @@ Caso 2,-34.6158,-58.4333,Hurto,Sur,Registro cercano a avenida principal
 3. La validacion de coordenadas es una funcionalidad central, no un detalle secundario.
 4. La exportacion PDF usa un navegador headless en el servidor, no en la maquina del alumno.
 
-## Estado actual
+## Autoría
 
-1. La version actual reemplaza la arquitectura anterior por una base `FastAPI` mas simple de extender.
-2. El flujo principal ya cubre carga, validacion, visualizacion y exportacion.
-3. La base quedo preparada para sumar implementaciones mas grandes encima de esta v3.
+Desarrollado por **Federico Balmaceda**.
 
-## Si algo no funciona
-
-- **Error al instalar:** comprobá la conexión y volvé a ejecutar el comando. Si una red escolar bloquea GitHub, python.org, PyPI o la descarga de Chromium, solicitá acceso a esos servicios.
-- **Puerto 8000 ocupado:** cerrá la instancia anterior de GeoExcel Map antes de abrir otra.
-- **Rossmo no avanza:** revisá el mensaje sobre el formulario. Las fechas deben estar ordenadas y el anclaje conocido opcional requiere tanto latitud como longitud. Después de cambiar datos o parámetros, volvé a validar o calcular antes de exportar.
-- **PDF no disponible:** requiere acceso al proveedor del mapa de fondo. Probá otro fondo y comprobá la conexión. Volver a ejecutar el instalador también prepara Chromium.
-- **Un HTML anterior muestra “403 / Access blocked”:** actualizá GeoExcel Map y exportá nuevamente. Los archivos ya descargados no se actualizan automáticamente. La nueva exportación utiliza Esri claro cuando se seleccionó OpenStreetMap.
-- **Sesión vencida:** cargá de nuevo la planilla. Las sesiones temporales se conservan hasta 12 horas y se limpian al iniciar.
+Repositorio: [github.com/federicobalm/geoexcel-map](https://github.com/federicobalm/geoexcel-map).

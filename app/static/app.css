@@ -2,6 +2,11 @@
 * { box-sizing: border-box; }
 [hidden] { display: none !important; }
 body { margin: 0; background: var(--bg); color: var(--text); font: 15px/1.5 "Segoe UI", system-ui, sans-serif; }
+.app-footer { border-top: 1px solid var(--line); background: var(--panel); padding: 24px max(16px, calc((100vw - 1280px)/2)); }
+.app-footer-credits { display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 12px 24px; font-size: 14px; }
+.app-footer-credits p { color: var(--text); }
+.app-footer-credits a { overflow-wrap: anywhere; }
+.app-footer .academic-notice { margin: 20px 0 0; }
 ::selection { background: #c7e9de; color: #153a32; }
 :focus-visible { outline: 3px solid #257eaf; outline-offset: 4px; }
 button, input, select, textarea { font: inherit; }

@@ -7,7 +7,8 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
   <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css">
   <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css">
-  <link rel="stylesheet" href="{{ url_for('static', path='app.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', path='app.css') }}?v=20261030-footer">
+  {% include 'academic_notice_style.html' %}
   {% block head %}{% endblock %}
 </head>
 <body>
@@ -26,6 +27,13 @@
     </nav>
   </header>
   {% block body %}{% endblock %}
+  <footer class="app-footer">
+    <div class="app-footer-credits">
+      <p>GeoExcel Map · Desarrollado por <strong>Federico Balmaceda</strong></p>
+      <a href="https://github.com/federicobalm/geoexcel-map" target="_blank" rel="noopener noreferrer">Repositorio en GitHub · federicobalm/geoexcel-map</a>
+    </div>
+    {% include 'academic_notice.html' %}
+  </footer>
   {% block scripts %}{% endblock %}
 </body>
 </html>
