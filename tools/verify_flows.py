@@ -28,9 +28,18 @@ def verify_exports(context, page, prefix, directory, kind, pdf=False):
     download.value.save_as(html)
     exported = context.new_page()
     errors = []
+    osm_requests = []
     exported.on('pageerror', lambda error: errors.append(str(error)))
+    exported.on('request', lambda request: osm_requests.append(request.url) if 'tile.openstreetmap.org/' in request.url else None)
     exported.goto(html.as_uri(), wait_until='networkidle')
     expect(exported.locator('.cartographic-legend')).to_be_visible()
+    exported.wait_for_function("""() => {
+        const tiles = [...document.querySelectorAll('#map img.leaflet-tile')];
+        return tiles.length > 0 && tiles.every(tile => tile.complete && tile.naturalWidth > 0);
+    }""")
+    assert not osm_requests, 'Local exports must not request OpenStreetMap tiles'
+    assert exported.evaluate('window.GEOEXCEL_EXPORT_PAYLOAD.map_config.tile_layer') == 'Esri Light Gray'
+    expect(exported.locator('.cartographic-legend')).to_contain_text('Esri Light Gray sustituye a OpenStreetMap')
     if kind in ('hotmap', 'profile'):
         expect(exported.locator('canvas.leaflet-heatmap-layer')).to_be_visible()
     if kind == 'choropleth':

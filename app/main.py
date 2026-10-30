@@ -196,9 +196,25 @@ async def map_preview(map_request: MapRequest) -> MapPreviewResponse:
     return await asyncio.to_thread(_build_map_preview_payload, map_request)
 
 
+def _build_export_payload(map_request: MapRequest) -> MapPreviewResponse:
+    # Downloaded HTML and the PDF renderer use file://, which cannot supply the
+    # HTTP Referer required by tile.openstreetmap.org. Choose an export basemap
+    # before rendering so the map, attribution and report metadata agree.
+    replace_osm = map_request.tile_layer == "OpenStreetMap"
+    export_request = map_request.model_copy(update={"tile_layer": "Esri Light Gray"}) if replace_osm else map_request
+    payload = _build_map_preview_payload(export_request)
+    if replace_osm:
+        payload.cartography["warnings"].append(
+            "Fondo de exportación: Esri Light Gray sustituye a OpenStreetMap, "
+            "cuyo servidor de teselas requiere una referencia HTTP que los archivos locales no envían. "
+            "Los datos y la representación temática se conservan."
+        )
+    return payload
+
+
 @app.post("/api/export/html")
 async def export_html(map_request: MapRequest) -> HTMLResponse:
-    preview_payload = await asyncio.to_thread(_build_map_preview_payload, map_request)
+    preview_payload = await asyncio.to_thread(_build_export_payload, map_request)
     metadata = session_store.load_metadata(map_request.session_id)
     context = {
         "title": metadata["filename"],
@@ -212,7 +228,7 @@ async def export_html(map_request: MapRequest) -> HTMLResponse:
 
 @app.post("/api/export/pdf")
 async def export_pdf(map_request: MapRequest):
-    preview_payload = await asyncio.to_thread(_build_map_preview_payload, map_request)
+    preview_payload = await asyncio.to_thread(_build_export_payload, map_request)
     metadata = session_store.load_metadata(map_request.session_id)
     context = {
         "title": metadata["filename"],

@@ -29,6 +29,7 @@ El instalador descarga GeoExcel Map, prepara Python si hace falta, instala las d
 - Para actualizar, cerrá la aplicación y volvé a ejecutar el mismo comando.
 - Se instala para tu usuario en `%LOCALAPPDATA%\GeoExcel-Map`. Conserva los datos locales al actualizar.
 - Se necesita Internet para instalar y para cargar las bibliotecas y los mapas de fondo, también al abrir un HTML exportado o generar un PDF.
+- Al exportar HTML o PDF, el fondo OpenStreetMap se sustituye por **Esri claro**: los archivos locales no envían la referencia HTTP exigida por el servidor de OpenStreetMap. El informe identifica el fondo utilizado; los datos y las capas temáticas se conservan. Los otros fondos seleccionados se mantienen.
 
 El instalador aprovecha Python 3.11–3.13 cuando está disponible mediante `py`; en caso contrario instala Python 3.12 de python.org para el usuario, verificando su firma digital.
 
@@ -208,4 +209,5 @@ Caso 2,-34.6158,-58.4333,Hurto,Sur,Registro cercano a avenida principal
 - **Puerto 8000 ocupado:** cerrá la instancia anterior de GeoExcel Map antes de abrir otra.
 - **Rossmo no avanza:** revisá el mensaje sobre el formulario. Las fechas deben estar ordenadas y el anclaje conocido opcional requiere tanto latitud como longitud. Después de cambiar datos o parámetros, volvé a validar o calcular antes de exportar.
 - **PDF no disponible:** requiere acceso al proveedor del mapa de fondo. Probá otro fondo y comprobá la conexión. Volver a ejecutar el instalador también prepara Chromium.
+- **Un HTML anterior muestra “403 / Access blocked”:** actualizá GeoExcel Map y exportá nuevamente. Los archivos ya descargados no se actualizan automáticamente. La nueva exportación utiliza Esri claro cuando se seleccionó OpenStreetMap.
 - **Sesión vencida:** cargá de nuevo la planilla. Las sesiones temporales se conservan hasta 12 horas y se limpian al iniciar.
