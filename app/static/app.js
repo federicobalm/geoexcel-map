@@ -1,17 +1,24 @@
 const appState = {
   upload: null,
-  lastPreviewRequest: null,
   mapPayload: null,
   mapInstance: null,
   activeLayer: null,
+  busy: false,
+  step: 1,
 };
 
-const tileLayers = {
-  "OpenStreetMap": { url: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", options: { maxZoom: 19, attribution: "OpenStreetMap" } },
-  "CartoDB Positron": { url: "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png", options: { attribution: "CARTO", subdomains: "abcd", maxZoom: 20 } },
-  "CartoDB DarkMatter": { url: "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", options: { attribution: "CARTO", subdomains: "abcd", maxZoom: 20 } },
-  "Esri World Imagery": { url: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}", options: { attribution: "Esri", maxZoom: 18 } },
+
+const mapTypeDescriptions = {
+  points: ["Mapa de puntos", "Tocá un punto para consultar sus datos."],
+  heatmap: ["Densidad KDE", "La intensidad representa eventos por km²; ajustá el ancho de banda en metros."],
+  hotmap: ["Mapa de calor · Hot map", "Calor clásico: azul, cian, verde, amarillo y rojo. Ajustá el radio para ver las concentraciones."],
+  choropleth: ["Coropleta por grilla", "Compara cantidades en celdas; no son límites de barrios."],
+  cluster: ["Puntos agrupados", "Acercá el mapa para separar los grupos."],
+  category: ["Puntos por categoría", "Elegí una columna para asignar un color a cada grupo."],
+  proportional: ["Símbolos proporcionales", "El área de cada círculo representa la frecuencia de eventos en esa ubicación."],
 };
+
+const mapTypeLabels = Object.fromEntries(Object.entries(mapTypeDescriptions).map(([key, value]) => [key, value[0]]));
 
 function byId(id) {
   return document.getElementById(id);
@@ -21,8 +28,39 @@ function setFeedback(message, isError = false) {
   const feedback = byId("upload-feedback");
   feedback.hidden = false;
   feedback.textContent = message;
-  feedback.style.background = isError ? "rgba(231, 111, 81, 0.12)" : "rgba(79, 195, 247, 0.12)";
-  feedback.style.borderColor = isError ? "rgba(231, 111, 81, 0.22)" : "rgba(79, 195, 247, 0.22)";
+  feedback.classList.toggle("is-error", isError);
+}
+
+function goToMapStep(step) {
+  if (appState.busy || (step === 2 && !appState.upload) || (step === 3 && !appState.mapPayload)) return;
+  appState.step = step;
+  document.querySelector(".page-heading").hidden = step !== 1;
+  [1, 2, 3].forEach(number => {
+    byId(`map-stage-${number}`).hidden = number !== step;
+  });
+  document.querySelectorAll("[data-map-step]").forEach(button => {
+    const number = Number(button.dataset.mapStep);
+    button.disabled = (number === 2 && !appState.upload) || (number === 3 && !appState.mapPayload);
+    if (number === step) button.setAttribute("aria-current", "step");
+    else button.removeAttribute("aria-current");
+  });
+  const heading = byId(["", "upload-heading", "configure-heading", "result-heading"][step]);
+  heading.focus({ preventScroll: true });
+  if (step === 3 && appState.mapInstance) requestAnimationFrame(() => appState.mapInstance.invalidateSize());
+}
+
+function setBusy(busy) {
+  appState.busy = busy;
+  document.querySelectorAll("button").forEach(button => {
+    if (busy) {
+      button.dataset.wasDisabled = String(button.disabled);
+      button.disabled = true;
+    } else if (button.dataset.wasDisabled !== undefined) {
+      button.disabled = button.dataset.wasDisabled === "true";
+      delete button.dataset.wasDisabled;
+    }
+  });
+  document.querySelector("main").setAttribute("aria-busy", String(busy));
 }
 
 function hideFeedback() {
@@ -46,14 +84,6 @@ function fillSelect(select, values, selectedValue = "", includeEmpty = true) {
     }
     select.appendChild(option);
   });
-}
-
-function optionalFloat(value) {
-  if (value === "" || value === null || value === undefined) {
-    return null;
-  }
-  const parsed = Number(value);
-  return Number.isFinite(parsed) ? parsed : null;
 }
 
 function renderPreviewTable(rows) {
@@ -99,6 +129,9 @@ function renderNotes(notes) {
 
 function populateValidation(upload) {
   appState.upload = upload;
+  byId('map-period-confirmed').checked = false;
+  byId('map-synthetic').checked = false;
+  appState.mapPayload = null;
   byId("validation-empty").hidden = true;
   byId("validation-content").hidden = false;
   byId("summary-filename").textContent = upload.filename;
@@ -114,13 +147,15 @@ function populateValidation(upload) {
   byId("export-html").disabled = true;
   byId("export-pdf").disabled = true;
   renderLegend({ category_legend: [] });
-  renderProfile(null);
+  byId("coordinate-settings").open = !upload.suggested_lat_column || !upload.suggested_lon_column;
+  syncConditionalFields();
 }
 
 function currentMapRequest() {
   const form = byId("map-config-form");
   return {
     session_id: appState.upload.session_id,
+    cartographic_metadata: readCartographicMetadata('map'),
     lat_column: form.lat_column.value,
     lon_column: form.lon_column.value,
     map_type: form.map_type.value,
@@ -128,13 +163,17 @@ function currentMapRequest() {
     label_column: form.label_column.value || null,
     category_column: form.category_column.value || null,
     heat_radius: Number(form.heat_radius.value),
-    distance_metric: form.distance_metric.value,
-    buffer_radius_m: Number(form.buffer_radius_m.value),
-    decay_exponent_out: Number(form.decay_exponent_out.value),
-    decay_exponent_in: Number(form.decay_exponent_in.value),
-    scale_constant: Number(form.scale_constant.value),
-    known_anchor_lat: optionalFloat(form.known_anchor_lat.value),
-    known_anchor_lon: optionalFloat(form.known_anchor_lon.value),
+    heat_palette: form.heat_palette.value,
+    bandwidth_m: form.map_type.value === "heatmap" ? Number(form.bandwidth_m.value) : 500,
+    heat_levels: ["heatmap", "hotmap"].includes(form.map_type.value) ? readHeatLevels() : [10, 38, 58, 78, 100],
+    distance_metric: "manhattan",
+    buffer_radius_m: 400,
+    decay_exponent_out: 1.2,
+    decay_exponent_in: 2.0,
+    scale_constant: 1.0,
+    known_anchor_lat: null,
+    known_anchor_lon: null,
+    personal_analysis: null,
   };
 }
 
@@ -153,13 +192,83 @@ function markerIcon(color) {
   });
 }
 
+function colorForRatio(ratio) {
+  if (ratio >= 0.8) return "#7f1d1d";
+  if (ratio >= 0.6) return "#dc2626";
+  if (ratio >= 0.4) return "#f97316";
+  if (ratio >= 0.2) return "#facc15";
+  return "#38bdf8";
+}
+
+function buildGridCells(points, divisions = 7) {
+  if (!points.length) return [];
+  const lats = points.map((point) => point.lat);
+  const lons = points.map((point) => point.lon);
+  const minLat = Math.min(...lats);
+  const maxLat = Math.max(...lats);
+  const minLon = Math.min(...lons);
+  const maxLon = Math.max(...lons);
+  const latSpan = Math.max(maxLat - minLat, 0.0001);
+  const lonSpan = Math.max(maxLon - minLon, 0.0001);
+  const cellLat = latSpan / divisions;
+  const cellLon = lonSpan / divisions;
+  const cells = new Map();
+
+  points.forEach((point) => {
+    const row = Math.min(Math.floor((point.lat - minLat) / cellLat), divisions - 1);
+    const col = Math.min(Math.floor((point.lon - minLon) / cellLon), divisions - 1);
+    const key = `${row}:${col}`;
+    const current = cells.get(key) || { row, col, count: 0 };
+    current.count += 1;
+    cells.set(key, current);
+  });
+
+  const maxCount = Math.max(...Array.from(cells.values()).map((cell) => cell.count));
+  return Array.from(cells.values()).map((cell) => ({
+    count: cell.count,
+    ratio: cell.count / maxCount,
+    bounds: [
+      [minLat + cell.row * cellLat, minLon + cell.col * cellLon],
+      [minLat + (cell.row + 1) * cellLat, minLon + (cell.col + 1) * cellLon],
+    ],
+  }));
+}
+
+function buildHeatmapLayer(points, radius, paletteName = "classic", levels) {
+  const palette = HEAT_PALETTES[paletteName] || HEAT_PALETTES.classic;
+  const layer = L.layerGroup();
+  const heatData = points.map((point) => [point.lat, point.lon, 0.9]);
+  if (typeof L.heatLayer === "function") {
+    layer.addLayer(
+      L.heatLayer(heatData, {
+        radius: Math.round(radius * 1.65),
+        blur: Math.max(34, Math.round(radius * 1.45)),
+        minOpacity: 0.42,
+        maxZoom: 18,
+        gradient: heatGradient(paletteName, levels),
+      })
+    );
+  }
+  if (typeof L.heatLayer !== "function") points.forEach((point) => {
+    layer.addLayer(
+      L.circleMarker([point.lat, point.lon], {
+        radius: Math.max(18, Math.round(radius * 0.85)),
+        stroke: false,
+        fillColor: palette.gradient[0.38],
+        fillOpacity: 0.08,
+      }).bindPopup(popupHtml(point))
+    );
+  });
+  return layer;
+}
+
 function ensureMap() {
   if (appState.mapInstance) {
     return appState.mapInstance;
   }
   const map = L.map("map", { zoomControl: true });
   appState.mapInstance = map;
-  L.tileLayer(tileLayers["OpenStreetMap"].url, tileLayers["OpenStreetMap"].options).addTo(map);
+  L.tileLayer(tileLayers.OpenStreetMap.url, tileLayers.OpenStreetMap.options).addTo(map);
   map.setView([-34.6037, -58.3816], 11);
   return map;
 }
@@ -170,7 +279,7 @@ function setBasemap(map, tileLayerName) {
       map.removeLayer(layer);
     }
   });
-  const chosen = tileLayers[tileLayerName] || tileLayers["OpenStreetMap"];
+  const chosen = tileLayers[tileLayerName] || tileLayers.OpenStreetMap;
   L.tileLayer(chosen.url, chosen.options).addTo(map);
 }
 
@@ -209,45 +318,6 @@ function renderIssues(summary) {
   });
 }
 
-function renderProfile(profile) {
-  const card = byId("profile-card");
-  const metrics = byId("profile-metrics");
-  const notes = byId("profile-notes");
-  metrics.innerHTML = "";
-  notes.innerHTML = "";
-
-  if (!profile) {
-    card.hidden = true;
-    return;
-  }
-
-  const hsValue = profile.hit_score_percentage === null ? "Sin referencia" : `${profile.hit_score_percentage.toFixed(2)} %`;
-  const anchor = profile.anchor_estimate;
-  const items = [
-    ["Anclaje estimado", `${anchor.lat.toFixed(5)}, ${anchor.lon.toFixed(5)}`],
-    ["Crimenes usados", String(profile.crimes_used)],
-    ["Buffer", `${profile.buffer_radius_m} m`],
-    ["Metrica", profile.distance_metric],
-    ["HS%", hsValue],
-    ["Proyeccion", `EPSG:${profile.projection_epsg}`],
-  ];
-
-  items.forEach(([label, value]) => {
-    const div = document.createElement("div");
-    div.className = "profile-metric";
-    div.innerHTML = `<span>${label}</span><strong>${value}</strong>`;
-    metrics.appendChild(div);
-  });
-
-  [...(profile.warnings || []), ...(profile.notes || [])].forEach((item) => {
-    const li = document.createElement("li");
-    li.textContent = item;
-    notes.appendChild(li);
-  });
-
-  card.hidden = false;
-}
-
 function renderMap(payload) {
   const map = ensureMap();
   setBasemap(map, payload.map_config.tile_layer);
@@ -260,74 +330,53 @@ function renderMap(payload) {
   const legendColors = new Map(payload.category_legend.map((item) => [item.category, item.color]));
 
   if (payload.map_config.map_type === "heatmap") {
-    const heatData = payload.points.map((point) => {
-      bounds.push([point.lat, point.lon]);
-      return [point.lat, point.lon, 1];
-    });
-    appState.activeLayer = L.heatLayer(heatData, { radius: payload.map_config.heat_radius, blur: 20 });
-  } else if (payload.map_config.map_type === "profile" && payload.profile) {
+    bounds.push(...payload.density.bounds);
+    appState.activeLayer = renderDensity(payload.density, payload.map_config);
+  } else if (payload.map_config.map_type === "hotmap") {
+    payload.points.forEach(point => bounds.push([point.lat, point.lon]));
+    appState.activeLayer = buildHeatmapLayer(payload.points, payload.map_config.heat_radius, payload.map_config.heat_palette, payload.map_config.heat_levels);
+  } else if (payload.map_config.map_type === "proportional") {
+    payload.points.forEach(point => bounds.push([point.lat, point.lon]));
+    appState.activeLayer = renderProportional(payload.points);
+  } else if (payload.map_config.map_type === "choropleth") {
     const layer = L.layerGroup();
-    const jeopardy = payload.profile.jeopardy_points || [];
-    if (jeopardy.length) {
-      jeopardy.forEach((item) => bounds.push([item[0], item[1]]));
-      layer.addLayer(L.heatLayer(jeopardy, {
-        radius: 20,
-        blur: 24,
-        minOpacity: 0.28,
-        gradient: {
-          0.2: "#17324d",
-          0.45: "#2a9d8f",
-          0.7: "#ffb703",
-          0.9: "#ef476f",
-          1.0: "#ffffff",
-        },
-      }));
-    }
-
-    payload.points.forEach((point) => {
-      bounds.push([point.lat, point.lon]);
-      const color = legendColors.get(point.category) || "#ff6b6b";
-      layer.addLayer(L.marker([point.lat, point.lon], { icon: markerIcon(color) }).bindPopup(popupHtml(point)));
+    payload.points.forEach((point) => bounds.push([point.lat, point.lon]));
+    buildGridCells(payload.points).forEach((cell) => {
+      layer.addLayer(
+        L.rectangle(cell.bounds, {
+          color: "#ffffff",
+          weight: 1,
+          opacity: 0.42,
+          fillColor: colorForRatio(cell.ratio),
+          fillOpacity: 0.34 + cell.ratio * 0.46,
+        }).bindPopup(`<strong>Celda de coropleta</strong><div>Registros: ${cell.count}</div>`)
+      );
     });
-
-    const anchor = payload.profile.anchor_estimate;
-    bounds.push([anchor.lat, anchor.lon]);
-    layer.addLayer(
-      L.circleMarker([anchor.lat, anchor.lon], {
-        radius: 11,
-        color: "#ffffff",
-        weight: 2,
-        fillColor: "#ef476f",
-        fillOpacity: 0.95,
-      }).bindPopup(`<strong>Punto de anclaje estimado</strong><div>Lat: ${anchor.lat.toFixed(6)}</div><div>Lon: ${anchor.lon.toFixed(6)}</div><div>Score: ${anchor.score.toFixed(4)}</div>`),
-    );
-
     appState.activeLayer = layer;
   } else if (payload.map_config.map_type === "cluster") {
     const layer = L.markerClusterGroup();
     payload.points.forEach((point) => {
       bounds.push([point.lat, point.lon]);
-      layer.addLayer(L.marker([point.lat, point.lon], { icon: markerIcon("#ff6b6b") }).bindPopup(popupHtml(point)));
+      layer.addLayer(L.marker([point.lat, point.lon], { icon: markerIcon("#526d82") }).bindPopup(popupHtml(point)));
     });
     appState.activeLayer = layer;
   } else {
     const layer = L.layerGroup();
     payload.points.forEach((point) => {
       bounds.push([point.lat, point.lon]);
-      const color = payload.map_config.map_type === "category" ? (legendColors.get(point.category) || "#4fc3f7") : "#ff6b6b";
+      const color = payload.map_config.map_type === "category" ? (legendColors.get(point.category) || "#526d82") : "#526d82";
       layer.addLayer(L.marker([point.lat, point.lon], { icon: markerIcon(color) }).bindPopup(popupHtml(point)));
     });
     appState.activeLayer = layer;
   }
 
   appState.activeLayer.addTo(map);
-
   if (bounds.length) {
     map.fitBounds(bounds, { padding: [24, 24] });
   }
   renderLegend(payload);
   renderIssues(payload.summary);
-  renderProfile(payload.profile);
+  addCartography(map, payload);
   byId("export-html").disabled = false;
   byId("export-pdf").disabled = false;
 }
@@ -340,13 +389,13 @@ async function postJson(url, payload) {
   });
   if (!response.ok) {
     const error = await response.json().catch(() => ({ detail: "Ocurrio un error inesperado." }));
-    throw new Error(error.detail || "Ocurrio un error inesperado.");
+    throw new Error(apiErrorMessage(error));
   }
   return response;
 }
 
 async function downloadExport(url) {
-  const request = currentMapRequest();
+  const request = appState.mapPayload.map_config;
   const response = await postJson(url, request);
   const blob = await response.blob();
   const disposition = response.headers.get("Content-Disposition") || "";
@@ -362,23 +411,87 @@ async function downloadExport(url) {
 
 function syncConditionalFields() {
   const mapType = byId("map-type").value;
-  byId("heat-radius-wrap").style.display = mapType === "heatmap" ? "grid" : "none";
-  byId("profile-config-wrap").hidden = mapType !== "profile";
-  byId("category-column").disabled = !["category", "profile"].includes(mapType);
+  const isHeat = ["heatmap", "hotmap"].includes(mapType);
+  byId("heat-radius-wrap").hidden = mapType !== "hotmap";
+  byId("bandwidth-wrap").hidden = mapType !== "heatmap";
+  byId("bandwidth-m").disabled = mapType !== "heatmap";
+  byId("heat-palette-wrap").hidden = !isHeat;
+  byId("heat-levels-wrap").hidden = !isHeat;
+  if (isHeat && byId("heat-palette").dataset.mapType !== mapType) {
+    byId("heat-palette").value = mapType === "hotmap" ? "classic" : "blues";
+    byId("heat-palette").dataset.mapType = mapType;
+  }
+  for (let i = 0; i < 5; i++) byId(`heat-level-${i}`).disabled = !isHeat;
+  updatePalettePreview();
+  byId("category-column").disabled = mapType !== "category";
+  byId("category-column").required = mapType === "category";
+  byId("category-wrap").hidden = mapType !== "category";
+  const [title, description] = mapTypeDescriptions[mapType] || mapTypeDescriptions.points;
+  byId("map-type-title").textContent = title;
+  byId("map-type-description").textContent = description;
 }
 
+function updatePalettePreview() {
+  const palette = HEAT_PALETTES[byId("heat-palette").value];
+  const colors = Object.entries(palette.gradient).sort((a, b) => Number(a[0]) - Number(b[0])).map(entry => entry[1]);
+  const levels = readHeatLevels();
+  if (validHeatLevels(levels)) byId("heat-palette-preview").style.background = `linear-gradient(to right, ${colors.map((color, index) => `${color} ${levels[index]}%`).join(", ")})`;
+  document.querySelectorAll(".level-swatch").forEach((swatch, index) => swatch.style.background = colors[index]);
+}
+
+function readHeatLevels() {
+  return Array.from({ length: 5 }, (_, index) => byId(`heat-level-${index}`).valueAsNumber);
+}
+
+function validHeatLevels(levels) {
+  return levels.every((level, index) => Number.isInteger(level) && level >= 1 && level <= 100 && (index === 0 || level > levels[index - 1])) && levels[4] === 100;
+}
+
+document.querySelectorAll('.heat-levels input').forEach(input => input.addEventListener('input', () => {
+  byId('heat-levels-error').hidden = validHeatLevels(readHeatLevels());
+  updatePalettePreview();
+}));
+byId('reset-heat-levels').addEventListener('click', () => {
+  [10, 38, 58, 78, 100].forEach((value, index) => byId(`heat-level-${index}`).value = value);
+  byId('heat-levels-error').hidden = true;
+  updatePalettePreview();
+});
+
+byId("heat-palette").addEventListener("change", updatePalettePreview);
 byId("heat-radius").addEventListener("input", (event) => {
   byId("heat-radius-value").textContent = event.target.value;
 });
 
 byId("map-type").addEventListener("change", syncConditionalFields);
+document.querySelectorAll('input[name="map_choice"]').forEach(input => {
+  input.addEventListener("change", () => {
+    byId("map-type").value = input.value;
+    syncConditionalFields();
+  });
+});
+document.querySelectorAll("[data-map-step], [data-go-step]").forEach(button => {
+  button.addEventListener("click", () => {
+    hideFeedback();
+    goToMapStep(Number(button.dataset.mapStep || button.dataset.goStep));
+  });
+});
+byId("data-file").addEventListener("change", () => {
+  byId("selected-file").textContent = byId("data-file").files[0]?.name || "Ningún archivo seleccionado";
+});
+byId("fit-map").addEventListener("click", () => {
+  if (appState.mapPayload?.density) {
+    appState.mapInstance.fitBounds(appState.mapPayload.density.bounds, { padding: [30,30] });
+    return;
+  }
+  if (appState.mapPayload?.points.length) {
+    appState.mapInstance.fitBounds(appState.mapPayload.points.map(point => [point.lat, point.lon]), { padding: [30, 30] });
+  }
+});
 syncConditionalFields();
 
-byId("upload-form").addEventListener("submit", async (event) => {
-  event.preventDefault();
+async function uploadDataset(file) {
+  if (appState.busy) return;
   hideFeedback();
-
-  const file = byId("data-file").files[0];
   if (!file) {
     setFeedback("Selecciona un archivo antes de continuar.", true);
     return;
@@ -387,58 +500,103 @@ byId("upload-form").addEventListener("submit", async (event) => {
   const formData = new FormData();
   formData.append("file", file);
   setFeedback("Analizando archivo...");
+  setBusy(true);
 
   try {
     const response = await fetch("/api/upload", { method: "POST", body: formData });
     if (!response.ok) {
       const error = await response.json().catch(() => ({ detail: "No se pudo procesar el archivo." }));
-      throw new Error(error.detail || "No se pudo procesar el archivo.");
+      throw new Error(apiErrorMessage(error, "No se pudo procesar el archivo."));
     }
     const upload = await response.json();
+    setBusy(false);
     populateValidation(upload);
-    setFeedback("Archivo procesado. Revisa las sugerencias y genera el mapa.");
+    goToMapStep(2);
+    hideFeedback();
   } catch (error) {
+    setBusy(false);
+    setFeedback(error.message, true);
+  }
+}
+
+byId("upload-form").addEventListener("submit", (event) => {
+  event.preventDefault();
+  uploadDataset(byId("data-file").files[0]);
+});
+
+byId("load-demo").addEventListener("click", async () => {
+  if (appState.busy) return;
+  setBusy(true);
+  setFeedback("Cargando el ejemplo de Buenos Aires…");
+  try {
+    const response = await fetch("/sample_data/plantilla_geoexcel_map.csv");
+    if (!response.ok) throw new Error("No pudimos cargar el ejemplo. Volvé a intentarlo.");
+    const blob = await response.blob();
+    setBusy(false);
+    await uploadDataset(new File([blob], "Ejemplo_CABA_300_casos.csv", { type: "text/csv" }));
+  } catch (error) {
+    setBusy(false);
     setFeedback(error.message, true);
   }
 });
 
 byId("map-config-form").addEventListener("submit", async (event) => {
   event.preventDefault();
+  if (appState.busy) return;
   if (!appState.upload) {
     setFeedback("Primero debes analizar un archivo.", true);
     return;
   }
 
   const request = currentMapRequest();
-  appState.lastPreviewRequest = request;
+  if (["heatmap", "hotmap"].includes(request.map_type) && !validHeatLevels(request.heat_levels)) {
+    byId("heat-levels-wrap").open = true;
+    byId("heat-levels-error").hidden = false;
+    setFeedback("Revisá los niveles de color: deben aumentar de izquierda a derecha hasta 100 %.", true);
+    return;
+  }
   setFeedback("Generando vista del mapa...");
+  setBusy(true);
   try {
     const response = await postJson("/api/map-preview", request);
     const payload = await response.json();
+    setBusy(false);
     appState.mapPayload = payload;
+    goToMapStep(3);
     renderMap(payload);
-    setFeedback("Mapa generado. Ya puedes exportar el resultado.");
+    byId("result-map-type").textContent = mapTypeLabels[payload.map_config.map_type];
+    hideFeedback();
   } catch (error) {
+    setBusy(false);
+    if (appState.step === 3) goToMapStep(2);
     setFeedback(error.message, true);
   }
 });
 
 byId("export-html").addEventListener("click", async () => {
+  if (appState.busy) return;
+  setBusy(true);
   try {
     setFeedback("Preparando exportacion HTML...");
     await downloadExport("/api/export/html");
     setFeedback("Exportacion HTML lista.");
   } catch (error) {
     setFeedback(error.message, true);
+  } finally {
+    setBusy(false);
   }
 });
 
 byId("export-pdf").addEventListener("click", async () => {
+  if (appState.busy) return;
+  setBusy(true);
   try {
     setFeedback("Preparando exportacion PDF...");
     await downloadExport("/api/export/pdf");
     setFeedback("Exportacion PDF lista.");
   } catch (error) {
     setFeedback(error.message, true);
+  } finally {
+    setBusy(false);
   }
 });

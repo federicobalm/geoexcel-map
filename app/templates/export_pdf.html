@@ -3,67 +3,159 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>{{ title }}</title>
+  <title>Informe de analisis espacial - {{ title }}</title>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
   <style>
-    body { margin: 0; font-family: Arial, sans-serif; background: #f4f7fb; color: #1d2733; }
-    .report-shell { padding: 18px 22px; }
-    .report-head { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px; }
-    .report-head h1 { margin: 0; font-size: 24px; }
-    .report-head p { margin: 6px 0 0; color: #4d6175; }
-    .meta-box { background: white; border: 1px solid #d6e0ea; border-radius: 12px; padding: 12px 14px; min-width: 240px; }
-    .summary-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 16px; }
-    .summary-card { background: white; border: 1px solid #d6e0ea; border-radius: 14px; padding: 14px; }
-    .summary-card span { display: block; color: #607387; font-size: 11px; text-transform: uppercase; margin-bottom: 8px; }
-    .summary-card strong { font-size: 22px; }
-    #map { height: 430px; border: 1px solid #d6e0ea; border-radius: 18px; overflow: hidden; background: white; }
-    .issues-box { margin-top: 16px; background: white; border: 1px solid #d6e0ea; border-radius: 14px; padding: 14px 18px; }
-    .issues-box h2 { margin-top: 0; font-size: 18px; }
-    .issues-box li { margin-bottom: 6px; }
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: Georgia, "Times New Roman", serif; background: #eef2f6; color: #17212b; }
+    .report { width: 100%; min-height: 100vh; background: #f8fafc; }
+    .cover { display: grid; grid-template-columns: 1.15fr .85fr; min-height: 215px; background: linear-gradient(135deg, #101923, #1e344b); color: #f8fafc; }
+    .cover-main { padding: 28px 32px 24px; }
+    .eyebrow { margin: 0 0 12px; font-family: Arial, sans-serif; font-size: 11px; letter-spacing: .22em; text-transform: uppercase; color: #a9c7df; }
+    h1 { margin: 0; font-size: 34px; line-height: 1.05; font-weight: 700; }
+    .subtitle { margin: 12px 0 0; max-width: 760px; color: #d8e5ef; font-size: 15px; line-height: 1.5; }
+    .cover-side { padding: 28px 30px; background: rgba(255,255,255,.06); border-left: 1px solid rgba(255,255,255,.14); }
+    .seal { border: 1px solid rgba(255,255,255,.32); padding: 16px; min-height: 150px; }
+    .seal strong { display: block; font-family: Arial, sans-serif; font-size: 12px; letter-spacing: .16em; text-transform: uppercase; color: #bdd6ea; }
+    .seal span { display: block; margin-top: 12px; font-size: 20px; line-height: 1.25; }
+    .content { padding: 22px 28px 28px; }
+    .section { background: #ffffff; border: 1px solid #d7e0ea; border-radius: 2px; padding: 18px 20px; margin-bottom: 14px; box-shadow: 0 8px 22px rgba(20,35,50,.06); page-break-inside: avoid; }
+    .section h2 { margin: 0 0 10px; font-family: Arial, sans-serif; font-size: 15px; letter-spacing: .12em; text-transform: uppercase; color: #20364c; border-bottom: 1px solid #d7e0ea; padding-bottom: 8px; }
+    .lead { font-size: 15px; line-height: 1.55; margin: 0; color: #263544; }
+    .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+    .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+    .grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; }
+    .metric { border: 1px solid #dce5ee; background: #f8fbfe; padding: 12px; min-height: 76px; }
+    .metric span { display: block; font-family: Arial, sans-serif; font-size: 10px; letter-spacing: .12em; text-transform: uppercase; color: #60758a; margin-bottom: 8px; }
+    .metric strong { display: block; font-family: Arial, sans-serif; font-size: 21px; color: #162637; }
+    .metric small { display: block; margin-top: 5px; color: #60758a; font-size: 11px; }
+    .table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    .table th, .table td { border: 1px solid #dbe4ed; padding: 8px 9px; text-align: left; vertical-align: top; }
+    .table th { width: 28%; background: #f0f5fa; font-family: Arial, sans-serif; text-transform: uppercase; font-size: 10px; letter-spacing: .08em; color: #526a81; }
+    #map { height: 320px; border: 1px solid #c9d5e1; background: #edf2f7; break-inside: avoid; }
+    .map-caption { margin: 8px 0 0; font-size: 11px; color: #5e7183; font-style: italic; }
+    ul { margin: 0; padding-left: 18px; }
+    li { margin-bottom: 6px; line-height: 1.42; }
+    .narrative { white-space: pre-line; line-height: 1.58; font-size: 13px; color: #263544; }
+    .notice { border-left: 4px solid #9a3412; background: #fff7ed; padding: 10px 12px; font-size: 12px; color: #5b2d12; }
+    .footer { padding: 0 28px 18px; font-family: Arial, sans-serif; font-size: 10px; color: #6c7f90; }
   </style>
 </head>
 <body>
-  <div class="report-shell">
-    <div class="report-head">
-      <div>
-        <h1>{{ title }}</h1>
-        <p>Reporte espacial exportado desde GeoExcel Map v3.</p>
+  <main class="report">
+    <header class="cover">
+      <div class="cover-main">
+        <p class="eyebrow">GeoExcel Map v3 | Motor de perfilado geografico</p>
+        <h1>Informe de analisis espacial</h1>
+        <p class="subtitle">Documento técnico de apoyo analítico con identificación del fenómeno, fuentes, método cartográfico, cobertura de coordenadas y limitaciones de interpretación.</p>
       </div>
-      <div class="meta-box" id="meta-box"></div>
-    </div>
-    <div class="summary-row" id="summary-row"></div>
-    <div id="map"></div>
-    <section class="issues-box">
-      <h2>Observaciones del archivo</h2>
-      <ul id="issues-list"></ul>
+      <aside class="cover-side">
+        <div class="seal">
+          <strong>Clasificacion del producto</strong>
+          <span>Analisis espacial especializado<br>con interpretacion metodologica</span>
+        </div>
+      </aside>
+    </header>
+
+    <section class="content">
+      <section class="section">
+        <h2>Identificacion del informe</h2>
+        <div class="grid-3" id="identity-grid"></div>
+      </section>
+
+      <section class="section">
+        <h2>Resumen ejecutivo</h2>
+        <p class="lead" id="executive-summary"></p>
+      </section>
+
+      <section class="section">
+        <h2>Indicadores principales</h2>
+        <div class="grid-4" id="summary-row"></div>
+      </section>
+
+      <section class="section">
+        <h2>Representacion cartografica</h2>
+        <div id="map"></div>
+        <p class="map-caption" id="map-caption"></p>
+      </section>
+
+      <section class="grid-2">
+        <div class="section">
+          <h2>Ficha metodologica</h2>
+          <table class="table" id="method-table"></table>
+        </div>
+        <div class="section">
+          <h2>Resultado espacial</h2>
+          <table class="table" id="result-table"></table>
+        </div>
+      </section>
+
+      <section class="grid-2">
+        <div class="section">
+          <h2>Interpretacion sistematizada</h2>
+          <ul id="systematic-list"></ul>
+        </div>
+        <div class="section">
+          <h2>Analisis del especialista</h2>
+          <div class="narrative" id="personal-analysis"></div>
+        </div>
+      </section>
+
+      <section class="section">
+        <h2>Control de calidad y advertencias</h2>
+        <ul id="quality-list"></ul>
+      </section>
+
+      <section class="section">
+        <h2>Alcance y limitaciones</h2>
+        <div class="notice">Este informe constituye un producto de apoyo a la decision analitica. La superficie prioritaria no identifica autores ni predice hechos futuros; orienta tareas de verificacion territorial, inteligencia criminal y priorizacion de recursos bajo supervision profesional.</div>
+      </section>
     </section>
-  </div>
+    <footer class="footer">Generado automaticamente por GeoExcel Map v3. Los resultados dependen de la calidad, vinculacion y representatividad del dataset cargado.</footer>
+  </main>
 
   <script>
     window.GEOEXCEL_EXPORT_PAYLOAD = {{ map_payload_json | safe }};
     window.GEOEXCEL_EXPORT_SUMMARY = {{ summary_json | safe }};
   </script>
+  {% include "heat_palettes.html" %}
+  {% include "basemaps.html" %}
+  {% include "cartography.html" %}
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="https://unpkg.com/leaflet.heat/dist/leaflet-heat.js"></script>
   <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
   <script>
-    const tileLayers = {
-      "OpenStreetMap": { url: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", options: { maxZoom: 19, attribution: "OpenStreetMap" } },
-      "CartoDB Positron": { url: "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png", options: { attribution: "CARTO", subdomains: "abcd", maxZoom: 20 } },
-      "CartoDB DarkMatter": { url: "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", options: { attribution: "CARTO", subdomains: "abcd", maxZoom: 20 } },
-      "Esri World Imagery": { url: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}", options: { attribution: "Esri", maxZoom: 18 } },
-    };
+
     const payload = window.GEOEXCEL_EXPORT_PAYLOAD;
     const summary = window.GEOEXCEL_EXPORT_SUMMARY;
+    const reportTitle = {{ title_json | safe }};
     const config = payload.map_config;
-    const map = L.map("map", { zoomControl: false, attributionControl: false });
-    const tile = tileLayers[config.tile_layer] || tileLayers["OpenStreetMap"];
-    L.tileLayer(tile.url, tile.options).addTo(map);
-
-    const palette = new Map(payload.category_legend.map(item => [item.category, item.color]));
     const points = payload.points || [];
     const profile = payload.profile;
+    const personalAnalysis = config.personal_analysis || "No se incorporo analisis personal en esta exportacion.";
     const bounds = [];
+    const palette = new Map((payload.category_legend || []).map(item => [item.category, item.color]));
+    const mapTypeLabels = { points: "Mapa de puntos", heatmap: "Densidad KDE", hotmap: "Mapa de calor", choropleth: "Coropleta por grilla", proportional: "Símbolos proporcionales", cluster: "Puntos agrupados", category: "Puntos por categoria", profile: "Perfil geografico" };
+    const mapTypeLabel = mapTypeLabels[config.map_type] || config.map_type;
+
+    function formatNumber(value, digits = 2) {
+      if (value === null || value === undefined || Number.isNaN(Number(value))) return "No informado";
+      return Number(value).toLocaleString("es-AR", { maximumFractionDigits: digits });
+    }
+
+    function metric(label, value, helper = "") {
+      return `<div class="metric"><span>${label}</span><strong>${value}</strong>${helper ? `<small>${helper}</small>` : ""}</div>`;
+    }
+
+    function addRows(rootId, rows) {
+      document.getElementById(rootId).innerHTML = rows.map(([label, value]) => `<tr><th>${label}</th><td>${value}</td></tr>`).join("");
+    }
+
+    function list(rootId, items, fallback) {
+      const root = document.getElementById(rootId);
+      const clean = items.filter(Boolean);
+      root.innerHTML = (clean.length ? clean : [fallback]).map(item => `<li>${item}</li>`).join("");
+    }
 
     function markerIcon(color) {
       return L.divIcon({
@@ -74,85 +166,163 @@
       });
     }
 
+    function colorForRatio(ratio) {
+      if (ratio >= 0.8) return "#7f1d1d";
+      if (ratio >= 0.6) return "#dc2626";
+      if (ratio >= 0.4) return "#f97316";
+      if (ratio >= 0.2) return "#facc15";
+      return "#38bdf8";
+    }
+
+    function buildGridCells(points, divisions = 7) {
+      if (!points.length) return [];
+      const lats = points.map((point) => point.lat);
+      const lons = points.map((point) => point.lon);
+      const minLat = Math.min(...lats);
+      const maxLat = Math.max(...lats);
+      const minLon = Math.min(...lons);
+      const maxLon = Math.max(...lons);
+      const latSpan = Math.max(maxLat - minLat, 0.0001);
+      const lonSpan = Math.max(maxLon - minLon, 0.0001);
+      const cellLat = latSpan / divisions;
+      const cellLon = lonSpan / divisions;
+      const cells = new Map();
+      points.forEach((point) => {
+        const row = Math.min(Math.floor((point.lat - minLat) / cellLat), divisions - 1);
+        const col = Math.min(Math.floor((point.lon - minLon) / cellLon), divisions - 1);
+        const key = `${row}:${col}`;
+        const current = cells.get(key) || { row, col, count: 0 };
+        current.count += 1;
+        cells.set(key, current);
+      });
+      const maxCount = Math.max(...Array.from(cells.values()).map((cell) => cell.count));
+      return Array.from(cells.values()).map((cell) => ({
+        count: cell.count,
+        ratio: cell.count / maxCount,
+        bounds: [[minLat + cell.row * cellLat, minLon + cell.col * cellLon], [minLat + (cell.row + 1) * cellLat, minLon + (cell.col + 1) * cellLon]],
+      }));
+    }
+
+    function buildHeatmapLayer(points, radius) {
+      const palette = HEAT_PALETTES[config.heat_palette] || HEAT_PALETTES.classic;
+      const layer = L.layerGroup();
+      const heatData = points.map(point => [point.lat, point.lon, 0.9]);
+      if (typeof L.heatLayer === "function") {
+        layer.addLayer(L.heatLayer(heatData, { radius: Math.round(radius * 1.65), blur: Math.max(34, Math.round(radius * 1.45)), minOpacity: 0.42, maxZoom: 18, gradient: heatGradient(config.heat_palette, config.heat_levels) }));
+      }
+      if (typeof L.heatLayer !== "function") points.forEach(point => {
+        layer.addLayer(L.circleMarker([point.lat, point.lon], { radius: Math.max(18, Math.round(radius * 0.85)), stroke: false, fillColor: palette.gradient[0.38], fillOpacity: 0.08 }));
+      });
+      return layer;
+    }
+
+    const map = L.map("map", { zoomControl: false, attributionControl: true, fadeAnimation: false, zoomAnimation: false });
+    const tile = tileLayers[config.tile_layer] || tileLayers["OpenStreetMap"];
+    L.tileLayer(tile.url, tile.options).addTo(map);
+
     if (config.map_type === "heatmap") {
-      L.heatLayer(points.map(point => [point.lat, point.lon, 1]), { radius: config.heat_radius, blur: 20 }).addTo(map);
+      bounds.push(...payload.density.bounds);
+      renderDensity(payload.density, config).addTo(map);
+    } else if (config.map_type === "hotmap") {
       points.forEach(point => bounds.push([point.lat, point.lon]));
+      buildHeatmapLayer(points, config.heat_radius).addTo(map);
+    } else if (config.map_type === "proportional") {
+      points.forEach(point => bounds.push([point.lat, point.lon]));
+      renderProportional(points).addTo(map);
+    } else if (config.map_type === "choropleth") {
+      points.forEach(point => bounds.push([point.lat, point.lon]));
+      buildGridCells(points).forEach(cell => {
+        L.rectangle(cell.bounds, { color: "#ffffff", weight: 1, opacity: 0.42, fillColor: colorForRatio(cell.ratio), fillOpacity: 0.34 + cell.ratio * 0.46 }).addTo(map);
+      });
     } else if (config.map_type === "profile" && profile) {
       const jeopardy = profile.jeopardy_points || [];
       if (jeopardy.length) {
-        L.heatLayer(jeopardy, {
-          radius: 20,
-          blur: 24,
-          minOpacity: 0.28,
-          gradient: { 0.2: "#17324d", 0.45: "#2a9d8f", 0.7: "#ffb703", 0.9: "#ef476f", 1.0: "#ffffff" },
-        }).addTo(map);
+        L.heatLayer(jeopardy, { radius: 20, blur: 24, minOpacity: 0.28, gradient: heatGradient('blues') }).addTo(map);
         jeopardy.forEach(point => bounds.push([point[0], point[1]]));
       }
       points.forEach(point => {
         bounds.push([point.lat, point.lon]);
-        const color = palette.get(point.category) || "#e63946";
-        L.marker([point.lat, point.lon], { icon: markerIcon(color) }).addTo(map);
+        L.marker([point.lat, point.lon], { icon: markerIcon(palette.get(point.category) || "#526d82") }).addTo(map);
       });
       const anchor = profile.anchor_estimate;
       bounds.push([anchor.lat, anchor.lon]);
-      L.circleMarker([anchor.lat, anchor.lon], { radius: 10, color: "#ffffff", weight: 2, fillColor: "#ef476f", fillOpacity: 0.95 }).addTo(map);
+      L.circleMarker([anchor.lat, anchor.lon], { radius: 10, color: "#ffffff", weight: 2, fillColor: "#40365c", fillOpacity: .96 }).addTo(map);
     } else if (config.map_type === "cluster") {
       const clusters = L.markerClusterGroup();
       points.forEach(point => {
         bounds.push([point.lat, point.lon]);
-        clusters.addLayer(L.marker([point.lat, point.lon], { icon: markerIcon("#ff6b6b") }));
+        clusters.addLayer(L.marker([point.lat, point.lon], { icon: markerIcon("#526d82") }));
       });
       map.addLayer(clusters);
     } else {
       points.forEach(point => {
         bounds.push([point.lat, point.lon]);
-        const color = config.map_type === "category" ? (palette.get(point.category) || "#457b9d") : "#e63946";
+        const color = config.map_type === "category" ? (palette.get(point.category) || "#457b9d") : "#526d82";
         L.marker([point.lat, point.lon], { icon: markerIcon(color) }).addTo(map);
       });
     }
 
-    if (bounds.length) {
-      map.fitBounds(bounds, { padding: [18, 18] });
-    } else {
-      map.setView([-34.6037, -58.3816], 11);
-    }
+    if (bounds.length) map.fitBounds(bounds, { padding: [18, 18] }); else map.setView([-34.6037, -58.3816], 11);
 
-    const summaryRow = document.getElementById("summary-row");
-    [
-      ["Total de filas", summary.total_rows],
-      ["Filas validas", summary.valid_rows],
-      ["Filas observadas", summary.invalid_rows],
-      ["Tipo de mapa", config.map_type],
-      ...(profile ? [["Crimenes usados", profile.crimes_used], ["Buffer Rossmo", `${profile.buffer_radius_m} m`]] : []),
-    ].forEach(([label, value]) => {
-      const div = document.createElement("div");
-      div.className = "summary-card";
-      div.innerHTML = `<span>${label}</span><strong>${value}</strong>`;
-      summaryRow.appendChild(div);
-    });
+    const reportDate = payload.cartography.created_at;
+    document.getElementById("identity-grid").innerHTML = [
+      metric("Fuente analizada", reportTitle, "Archivo cargado en la sesion"),
+      metric("Fecha de emision", reportDate, "Fecha de elaboración del servidor (UTC)"),
+      metric("Producto", profile ? "Perfil geografico" : mapTypeLabel, "GeoExcel Map v3"),
+    ].join("");
 
-    document.getElementById("meta-box").innerHTML = `
-      <strong>Configuracion</strong>
-      <div>Mapa base: ${config.tile_layer}</div>
-      <div>Latitud: ${config.lat_column}</div>
-      <div>Longitud: ${config.lon_column}</div>
-      ${profile ? `<div>Metrica: ${profile.distance_metric}</div><div>EPSG: ${profile.projection_epsg}</div>` : ""}
-    `;
+    document.getElementById("summary-row").innerHTML = [
+      metric("Registros totales", summary.total_rows),
+      metric("Registros validos", summary.valid_rows),
+      metric("Registros observados", summary.invalid_rows),
+      metric("Modo de analisis", mapTypeLabel),
+      ...(profile ? [
+        metric("Hechos usados", profile.crimes_used),
+        metric("Buffer", `${formatNumber(profile.buffer_radius_m, 0)} m`),
+        metric("Celda de grilla", `${formatNumber(profile.cell_size_m, 1)} m`),
+        metric("HS%", profile.hit_score_percentage === null ? "No calculado" : `${formatNumber(profile.hit_score_percentage, 2)} %`),
+      ] : []),
+    ].join("");
 
-    const issueList = document.getElementById("issues-list");
-    const issueItems = [...summary.invalid_breakdown, ...(profile ? [...profile.warnings, ...profile.notes] : [])];
-    if (issueItems.length) {
-      issueItems.forEach(item => {
-        const li = document.createElement("li");
-        li.textContent = item;
-        issueList.appendChild(li);
-      });
-    } else {
-      const li = document.createElement("li");
-      li.textContent = "No se detectaron problemas en las filas exportadas.";
-      issueList.appendChild(li);
-    }
+    const anchor = profile ? profile.anchor_estimate : null;
+    document.getElementById("executive-summary").textContent = profile
+      ? `Se procesaron ${summary.valid_rows} registros geograficamente validos sobre ${summary.total_rows} filas declaradas. El modelo genero una superficie de prioridad y estimo un punto de anclaje operativo aproximado en latitud ${anchor.lat.toFixed(6)} y longitud ${anchor.lon.toFixed(6)}. La lectura debe emplearse para priorizar busquedas, entrevistas, verificaciones de entorno y contraste con informacion investigativa externa.`
+      : `Se procesaron ${summary.valid_rows} registros geograficamente validos sobre ${summary.total_rows} filas declaradas. El producto consolida la distribucion espacial de los eventos y permite evaluar concentraciones, dispersion territorial y consistencia de las coordenadas cargadas.`;
 
+    document.getElementById("map-caption").textContent = profile
+      ? "Mapa de prioridad espacial: puntos observados, superficie de peligro relativa y punto de anclaje estimado."
+      : "Mapa de distribucion espacial construido a partir de las coordenadas validas del dataset.";
+
+    addRows("method-table", [
+      ["Mapa base", config.tile_layer],
+      ["Columnas geograficas", `Latitud: ${config.lat_column} | Longitud: ${config.lon_column}`],
+      ["Tipo de representacion", mapTypeLabel],
+       ...(["heatmap", "hotmap"].includes(config.map_type) ? [["Paleta", HEAT_PALETTES[config.heat_palette || "classic"].label], ["Niveles de intensidad relativa", (config.heat_levels || [10, 38, 58, 78, 100]).map(value => `${value} %`).join(" / ")]] : []),
+      ...(profile ? [
+        ["Modelo", "Criminal Geographic Targeting / Rossmo"],
+        ["Proyeccion metrica", `EPSG:${profile.projection_epsg}`],
+        ["Metrica de distancia", profile.distance_metric],
+        ["Parametros", `k=${profile.scale_constant}, f=${profile.decay_exponent_out}, g=${profile.decay_exponent_in}, buffer=${profile.buffer_radius_m} m`],
+        ["Resolucion", `${profile.grid_rows} x ${profile.grid_cols} celdas`],
+      ] : []),
+    ]);
+
+    addRows("result-table", profile ? [
+      ["Punto de anclaje estimado", `${anchor.lat.toFixed(6)}, ${anchor.lon.toFixed(6)}`],
+      ["Puntaje relativo maximo", formatNumber(anchor.score, 6)],
+      ["Superficie prioritaria", `${formatNumber((profile.jeopardy_points || []).length, 0)} celdas/puntos de calor`],
+      ["Hechos incorporados", profile.crimes_used],
+      ["Evaluacion retrospectiva", profile.hit_score_percentage === null ? "Sin punto conocido informado" : `HS% ${formatNumber(profile.hit_score_percentage, 2)}`],
+    ] : [
+      ["Extension de datos", summary.bounds ? `${summary.bounds.south}, ${summary.bounds.west} / ${summary.bounds.north}, ${summary.bounds.east}` : "No disponible"],
+      ["Registros representados", summary.valid_rows],
+    ]);
+
+    list("systematic-list", profile ? [...profile.systematic_analysis, ...profile.notes] : [], "No se genero analisis sistematizado para este tipo de mapa.");
+    document.getElementById("personal-analysis").textContent = personalAnalysis;
+    list("quality-list", [...(summary.invalid_breakdown || []), ...(profile ? profile.warnings : [])], "No se detectaron advertencias criticas en los datos exportados.");
+
+    addCartography(map, payload);
     window.__EXPORT_READY = true;
   </script>
 </body>

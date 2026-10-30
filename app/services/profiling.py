@@ -102,19 +102,25 @@ def build_geographic_profile(df, map_request: MapRequest) -> GeographicProfile:
 
     warnings: list[str] = []
     notes = [
-        "El pico probabilistico representa el centro mas probable de la base operativa, no la ubicacion del proximo ataque.",
+        "El maximo del puntaje CGT es una hipotesis de anclaje para contrastar; no es una probabilidad calibrada ni predice el proximo hecho.",
         "El modelo aplica proyeccion UTM antes del calculo para evitar errores metricos sobre grados decimales.",
     ]
+    systematic_analysis: list[str] = []
 
     if crimes_used < 5:
         warnings.append("La serie tiene menos de 5 delitos vinculados. El perfil puede ser inestable y sensible al sesgo de dispersion.")
+        systematic_analysis.append("La serie no alcanza el umbral recomendado de 5 hechos vinculados, por lo que la inferencia espacial debe considerarse exploratoria.")
+    else:
+        systematic_analysis.append(f"La serie aporta {crimes_used} coordenadas validas. Su vinculacion, representatividad y precision requieren verificacion analitica; el numero de registros no garantiza estabilidad estadistica.")
 
     if map_request.distance_metric == "manhattan":
         notes.append("Se uso distancia Manhattan para aproximar desplazamientos en reticula urbana.")
+        systematic_analysis.append("Se privilegio la distancia Manhattan, apropiada para movimientos condicionados por trama urbana y recorridos en reticula.")
         if not 300 <= map_request.buffer_radius_m <= 500:
             warnings.append("En entornos urbanos densos suele recomendarse un buffer entre 300 m y 500 m para mantener especificidad.")
     else:
         notes.append("Se uso distancia euclidiana para aproximar desplazamientos en entornos rurales o menos estructurados.")
+        systematic_analysis.append("Se privilegio la distancia euclidiana para reflejar trayectorias menos constreñidas por una grilla urbana.")
         if not 1000 <= map_request.buffer_radius_m <= 1500:
             warnings.append("En entornos rurales suele recomendarse un buffer entre 1000 m y 1500 m para compensar la menor densidad de objetivos.")
 
@@ -125,6 +131,12 @@ def build_geographic_profile(df, map_request: MapRequest) -> GeographicProfile:
 
     if hit_score_percentage is None:
         notes.append("El HS% solo puede calcularse si el analista informa un punto de anclaje conocido para evaluacion retrospectiva.")
+    else:
+        systematic_analysis.append(f"El HS% retrospectivo estimado es {hit_score_percentage:.2f} %, lo que indica el porcentaje del area prioritaria a inspeccionar antes de alcanzar el anclaje conocido.")
+
+    systematic_analysis.append(
+        f"El punto de anclaje estimado se concentra cerca de latitud {anchor_lat:.5f} y longitud {anchor_lon:.5f}, con buffer configurado en {map_request.buffer_radius_m} m y exponentes f={map_request.decay_exponent_out:.1f}, g={map_request.decay_exponent_in:.1f}."
+    )
 
     cell_size_x = abs(float(x_axis[1] - x_axis[0])) if len(x_axis) > 1 else 0.0
     cell_size_y = abs(float(y_axis[1] - y_axis[0])) if len(y_axis) > 1 else 0.0
@@ -144,5 +156,6 @@ def build_geographic_profile(df, map_request: MapRequest) -> GeographicProfile:
         anchor_estimate={"lat": float(anchor_lat), "lon": float(anchor_lon), "score": score_max},
         warnings=warnings,
         notes=notes,
+        systematic_analysis=systematic_analysis,
         jeopardy_points=jeopardy_points,
     )

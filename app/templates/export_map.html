@@ -3,57 +3,168 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>{{ title }}</title>
+  <title>Informe de analisis espacial - {{ title }}</title>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
   <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css">
   <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css">
   <style>
-    body { margin: 0; font-family: Arial, sans-serif; background: #0e1218; color: #edf2f7; }
-    header { padding: 16px 22px; background: #151d27; border-bottom: 1px solid #2c3947; }
-    h1 { margin: 0; font-size: 22px; }
-    p { margin: 6px 0 0; color: #c8d2de; }
-    #map { height: 76vh; width: 100%; }
-    .summary { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; padding: 14px 22px 24px; }
-    .card { background: #151d27; border: 1px solid #2c3947; border-radius: 14px; padding: 14px; }
-    .card span { display: block; color: #9fb1c5; font-size: 12px; text-transform: uppercase; }
-    .card strong { font-size: 24px; }
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: Inter, Arial, sans-serif; background: #0b1118; color: #e9f0f6; }
+    .hero { display: grid; grid-template-columns: minmax(0, 1.25fr) 420px; min-height: 330px; background: radial-gradient(circle at 20% 0%, rgba(88,166,255,.22), transparent 32%), linear-gradient(135deg, #0b1118, #15283b 58%, #26394d); border-bottom: 1px solid rgba(255,255,255,.12); }
+    .hero-main { padding: 42px 48px; }
+    .eyebrow { margin: 0 0 14px; color: #9cc7eb; font-size: 12px; letter-spacing: .22em; text-transform: uppercase; }
+    h1 { margin: 0; font-family: Georgia, "Times New Roman", serif; font-size: clamp(38px, 5vw, 68px); line-height: .95; }
+    .subtitle { margin: 18px 0 0; max-width: 890px; color: #c5d6e5; font-size: 18px; line-height: 1.6; }
+    .hero-card { margin: 34px 40px 34px 0; padding: 24px; border: 1px solid rgba(255,255,255,.18); background: rgba(8,15,24,.56); backdrop-filter: blur(12px); }
+    .hero-card span { display: block; color: #8cb1cf; font-size: 12px; letter-spacing: .14em; text-transform: uppercase; }
+    .hero-card strong { display: block; margin-top: 10px; font-family: Georgia, "Times New Roman", serif; font-size: 28px; line-height: 1.2; }
+    .hero-card p { margin: 16px 0 0; color: #b9cad9; line-height: 1.5; }
+    .layout { display: grid; grid-template-columns: 390px minmax(0, 1fr); gap: 18px; padding: 22px; }
+    .panel { background: #111b26; border: 1px solid #28384a; box-shadow: 0 18px 50px rgba(0,0,0,.22); }
+    .panel.pad { padding: 20px; }
+    .panel h2 { margin: 0 0 14px; color: #eaf2f9; font-size: 13px; letter-spacing: .14em; text-transform: uppercase; }
+    .lead { margin: 0; color: #cbd8e4; line-height: 1.65; }
+    .metrics { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-top: 12px; }
+    .metric { padding: 16px; background: #0c141e; border: 1px solid #263748; min-height: 92px; }
+    .metric span { display: block; color: #85a3be; font-size: 11px; letter-spacing: .12em; text-transform: uppercase; margin-bottom: 9px; }
+    .metric strong { display: block; font-size: 26px; color: #ffffff; }
+    .metric small { display: block; margin-top: 5px; color: #7891a8; }
+    #map { height: 74vh; min-height: 620px; background: #0e1721; }
+    .map-shell { overflow: hidden; position: sticky; top: 18px; }
+    .map-caption { margin: 0; padding: 12px 16px; border-top: 1px solid #28384a; color: #9eb3c5; background: #0d1620; font-size: 13px; }
+    .stack { display: grid; gap: 18px; }
+    table { width: 100%; border-collapse: collapse; color: #d7e3ee; font-size: 14px; }
+    th, td { border-top: 1px solid #263748; padding: 10px 0; text-align: left; vertical-align: top; }
+    th { width: 36%; color: #8faac2; font-size: 11px; letter-spacing: .1em; text-transform: uppercase; padding-right: 12px; }
+    ul { margin: 0; padding-left: 18px; color: #d5e0ea; }
+    li { margin-bottom: 8px; line-height: 1.5; }
+    .narrative { white-space: pre-line; color: #d5e0ea; line-height: 1.7; }
+    .notice { border-left: 4px solid #d97706; background: rgba(217,119,6,.12); padding: 14px 16px; color: #f4d7b2; line-height: 1.55; }
+    .full { grid-column: 1 / -1; }
+    footer { padding: 0 22px 28px; color: #748aa0; font-size: 12px; }
+    @media (max-width: 1100px) {
+      .hero, .layout { grid-template-columns: 1fr; }
+      .hero-card { margin: 0 28px 28px; }
+      .map-shell { position: static; }
+      .metrics { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 720px) {
+      .hero-main { padding: 32px 24px; }
+      .layout { padding: 14px; }
+      .metrics { grid-template-columns: 1fr; }
+      #map { min-height: 480px; }
+    }
   </style>
 </head>
 <body>
-  <header>
-    <h1>{{ title }}</h1>
-    <p>Exportacion interactiva generada por GeoExcel Map v3.</p>
+  <header class="hero">
+    <div class="hero-main">
+      <p class="eyebrow">GeoExcel Map v3 | Documento tecnico exportado</p>
+      <h1>Informe de analisis espacial</h1>
+      <p class="subtitle">Producto analitico estructurado para lectura profesional: calidad del dataset, parametros del modelo, superficie de prioridad, interpretacion sistematizada, criterio del especialista y limitaciones operativas.</p>
+    </div>
+    <aside class="hero-card">
+      <span>Clasificacion</span>
+      <strong>Analisis espacial especializado</strong>
+      <p id="hero-summary">Preparando informe...</p>
+    </aside>
   </header>
-  <div id="map"></div>
-  <section class="summary"></section>
+
+  <main class="layout">
+    <aside class="stack">
+      <section class="panel pad">
+        <h2>Identificacion</h2>
+        <table id="identity-table"></table>
+      </section>
+      <section class="panel pad">
+        <h2>Ficha metodologica</h2>
+        <table id="method-table"></table>
+      </section>
+      <section class="panel pad">
+        <h2>Resultado espacial</h2>
+        <table id="result-table"></table>
+      </section>
+      <section class="panel pad">
+        <h2>Control de calidad</h2>
+        <ul id="quality-list"></ul>
+      </section>
+    </aside>
+
+    <section class="stack">
+      <section class="panel pad">
+        <h2>Resumen ejecutivo</h2>
+        <p class="lead" id="executive-summary"></p>
+        <div class="metrics" id="summary-row"></div>
+      </section>
+
+      <section class="panel map-shell">
+        <div id="map"></div>
+        <p class="map-caption" id="map-caption"></p>
+      </section>
+
+      <section class="panel pad">
+        <h2>Interpretacion sistematizada</h2>
+        <ul id="systematic-list"></ul>
+      </section>
+
+      <section class="panel pad">
+        <h2>Analisis del especialista</h2>
+        <div class="narrative" id="personal-analysis"></div>
+      </section>
+
+      <section class="panel pad">
+        <h2>Alcance y limitaciones</h2>
+        <div class="notice">Este informe no identifica autores ni predice hechos futuros. La superficie prioritaria debe emplearse como soporte para priorizar recursos, contrastar hipotesis, organizar verificaciones territoriales y documentar decisiones analiticas bajo supervision profesional.</div>
+      </section>
+    </section>
+  </main>
+  <footer>Generado por GeoExcel Map v3. La validez del resultado depende de la calidad, vinculacion, temporalidad y representatividad del dataset cargado.</footer>
 
   <script>
     window.GEOEXCEL_EXPORT_PAYLOAD = {{ map_payload_json | safe }};
     window.GEOEXCEL_EXPORT_SUMMARY = {{ summary_json | safe }};
   </script>
+  {% include "heat_palettes.html" %}
+  {% include "basemaps.html" %}
+  {% include "cartography.html" %}
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="https://unpkg.com/leaflet.heat/dist/leaflet-heat.js"></script>
   <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
   <script>
-    const tileLayers = {
-      "OpenStreetMap": { url: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", options: { maxZoom: 19, attribution: "OpenStreetMap" } },
-      "CartoDB Positron": { url: "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png", options: { attribution: "CARTO", subdomains: "abcd", maxZoom: 20 } },
-      "CartoDB DarkMatter": { url: "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", options: { attribution: "CARTO", subdomains: "abcd", maxZoom: 20 } },
-      "Esri World Imagery": { url: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}", options: { attribution: "Esri", maxZoom: 18 } },
-    };
 
     const payload = window.GEOEXCEL_EXPORT_PAYLOAD;
     const summary = window.GEOEXCEL_EXPORT_SUMMARY;
+    const reportTitle = {{ title_json | safe }};
     const config = payload.map_config;
-    const map = L.map("map", { zoomControl: true });
-    const tile = tileLayers[config.tile_layer] || tileLayers["OpenStreetMap"];
-    L.tileLayer(tile.url, tile.options).addTo(map);
-
-    const legendColor = new Map(payload.category_legend.map(item => [item.category, item.color]));
+    const points = payload.points || [];
     const profile = payload.profile;
+    const personalAnalysis = config.personal_analysis || "No se incorporo analisis personal en esta exportacion.";
+    const palette = new Map((payload.category_legend || []).map(item => [item.category, item.color]));
+    const bounds = [];
+    const mapTypeLabels = { points: "Mapa de puntos", heatmap: "Densidad KDE", hotmap: "Mapa de calor", choropleth: "Coropleta por grilla", proportional: "Símbolos proporcionales", cluster: "Puntos agrupados", category: "Puntos por categoria", profile: "Perfil geografico" };
+    const mapTypeLabel = mapTypeLabels[config.map_type] || config.map_type;
+
+    function formatNumber(value, digits = 2) {
+      if (value === null || value === undefined || Number.isNaN(Number(value))) return "No informado";
+      return Number(value).toLocaleString("es-AR", { maximumFractionDigits: digits });
+    }
+
+    function metric(label, value, helper = "") {
+      return `<div class="metric"><span>${label}</span><strong>${value}</strong>${helper ? `<small>${helper}</small>` : ""}</div>`;
+    }
+
+    function addRows(rootId, rows) {
+      document.getElementById(rootId).innerHTML = rows.map(([label, value]) => `<tr><th>${label}</th><td>${value}</td></tr>`).join("");
+    }
+
+    function list(rootId, items, fallback) {
+      const root = document.getElementById(rootId);
+      const clean = items.filter(Boolean);
+      root.innerHTML = (clean.length ? clean : [fallback]).map(item => `<li>${item}</li>`).join("");
+    }
 
     function popupHtml(point) {
-      const rows = Object.entries(point.popup).map(([key, value]) => `<div><strong>${key}:</strong> ${value}</div>`).join("");
+      const rows = Object.entries(point.popup || {}).map(([key, value]) => `<div><strong>${key}:</strong> ${value}</div>`).join("");
       return `${point.label ? `<h4>${point.label}</h4>` : ""}${rows || "<span>Sin atributos adicionales</span>"}`;
     }
 
@@ -66,73 +177,161 @@
       });
     }
 
-    const points = payload.points || [];
-    const bounds = [];
+    function colorForRatio(ratio) {
+      if (ratio >= 0.8) return "#7f1d1d";
+      if (ratio >= 0.6) return "#dc2626";
+      if (ratio >= 0.4) return "#f97316";
+      if (ratio >= 0.2) return "#facc15";
+      return "#38bdf8";
+    }
+
+    function buildGridCells(points, divisions = 7) {
+      if (!points.length) return [];
+      const lats = points.map((point) => point.lat);
+      const lons = points.map((point) => point.lon);
+      const minLat = Math.min(...lats);
+      const maxLat = Math.max(...lats);
+      const minLon = Math.min(...lons);
+      const maxLon = Math.max(...lons);
+      const latSpan = Math.max(maxLat - minLat, 0.0001);
+      const lonSpan = Math.max(maxLon - minLon, 0.0001);
+      const cellLat = latSpan / divisions;
+      const cellLon = lonSpan / divisions;
+      const cells = new Map();
+      points.forEach((point) => {
+        const row = Math.min(Math.floor((point.lat - minLat) / cellLat), divisions - 1);
+        const col = Math.min(Math.floor((point.lon - minLon) / cellLon), divisions - 1);
+        const key = `${row}:${col}`;
+        const current = cells.get(key) || { row, col, count: 0 };
+        current.count += 1;
+        cells.set(key, current);
+      });
+      const maxCount = Math.max(...Array.from(cells.values()).map((cell) => cell.count));
+      return Array.from(cells.values()).map((cell) => ({
+        count: cell.count,
+        ratio: cell.count / maxCount,
+        bounds: [[minLat + cell.row * cellLat, minLon + cell.col * cellLon], [minLat + (cell.row + 1) * cellLat, minLon + (cell.col + 1) * cellLon]],
+      }));
+    }
+
+    function buildHeatmapLayer(points, radius) {
+      const palette = HEAT_PALETTES[config.heat_palette] || HEAT_PALETTES.classic;
+      const layer = L.layerGroup();
+      const heatData = points.map(point => [point.lat, point.lon, 0.9]);
+      if (typeof L.heatLayer === "function") {
+        layer.addLayer(L.heatLayer(heatData, { radius: Math.round(radius * 1.65), blur: Math.max(34, Math.round(radius * 1.45)), minOpacity: 0.42, maxZoom: 18, gradient: heatGradient(config.heat_palette, config.heat_levels) }));
+      }
+      if (typeof L.heatLayer !== "function") points.forEach(point => {
+        layer.addLayer(L.circleMarker([point.lat, point.lon], { radius: Math.max(18, Math.round(radius * 0.85)), stroke: false, fillColor: palette.gradient[0.38], fillOpacity: 0.08 }).bindPopup(popupHtml(point)));
+      });
+      return layer;
+    }
+
+    const map = L.map("map", { zoomControl: true });
+    const tile = tileLayers[config.tile_layer] || tileLayers["OpenStreetMap"];
+    L.tileLayer(tile.url, tile.options).addTo(map);
 
     if (config.map_type === "heatmap") {
-      const heatData = points.map(point => [point.lat, point.lon, 1]);
-      L.heatLayer(heatData, { radius: config.heat_radius, blur: 20 }).addTo(map);
+      bounds.push(...payload.density.bounds);
+      renderDensity(payload.density, config).addTo(map);
+    } else if (config.map_type === "hotmap") {
       points.forEach(point => bounds.push([point.lat, point.lon]));
+      buildHeatmapLayer(points, config.heat_radius).addTo(map);
+    } else if (config.map_type === "proportional") {
+      points.forEach(point => bounds.push([point.lat, point.lon]));
+      renderProportional(points).addTo(map);
+    } else if (config.map_type === "choropleth") {
+      points.forEach(point => bounds.push([point.lat, point.lon]));
+      buildGridCells(points).forEach(cell => {
+        L.rectangle(cell.bounds, { color: "#ffffff", weight: 1, opacity: 0.42, fillColor: colorForRatio(cell.ratio), fillOpacity: 0.34 + cell.ratio * 0.46 })
+          .bindPopup(`<strong>Celda de coropleta</strong><div>Registros: ${cell.count}</div>`)
+          .addTo(map);
+      });
     } else if (config.map_type === "profile" && profile) {
       const jeopardy = profile.jeopardy_points || [];
       if (jeopardy.length) {
-        L.heatLayer(jeopardy, {
-          radius: 20,
-          blur: 24,
-          minOpacity: 0.28,
-          gradient: { 0.2: "#17324d", 0.45: "#2a9d8f", 0.7: "#ffb703", 0.9: "#ef476f", 1.0: "#ffffff" },
-        }).addTo(map);
+        L.heatLayer(jeopardy, { radius: 20, blur: 24, minOpacity: .28, gradient: heatGradient('blues') }).addTo(map);
         jeopardy.forEach(point => bounds.push([point[0], point[1]]));
       }
       points.forEach(point => {
         bounds.push([point.lat, point.lon]);
-        const color = legendColor.get(point.category) || "#ff6b6b";
-        L.marker([point.lat, point.lon], { icon: markerIcon(color) }).bindPopup(popupHtml(point)).addTo(map);
+        L.marker([point.lat, point.lon], { icon: markerIcon(palette.get(point.category) || "#526d82") }).bindPopup(popupHtml(point)).addTo(map);
       });
       const anchor = profile.anchor_estimate;
       bounds.push([anchor.lat, anchor.lon]);
-      L.circleMarker([anchor.lat, anchor.lon], { radius: 10, color: "#ffffff", weight: 2, fillColor: "#ef476f", fillOpacity: 0.95 })
-        .bindPopup(`<strong>Punto de anclaje estimado</strong><div>Lat: ${anchor.lat.toFixed(6)}</div><div>Lon: ${anchor.lon.toFixed(6)}</div>`)
-        .addTo(map);
+      L.circleMarker([anchor.lat, anchor.lon], { radius: 11, color: "#ffffff", weight: 2, fillColor: "#40365c", fillOpacity: .96 }).bindPopup(`<strong>Punto de anclaje estimado</strong><div>Lat: ${anchor.lat.toFixed(6)}</div><div>Lon: ${anchor.lon.toFixed(6)}</div>`).addTo(map);
     } else if (config.map_type === "cluster") {
-      const clusterLayer = L.markerClusterGroup();
+      const clusters = L.markerClusterGroup();
       points.forEach(point => {
         bounds.push([point.lat, point.lon]);
-        const marker = L.marker([point.lat, point.lon], { icon: markerIcon("#ff6b6b") }).bindPopup(popupHtml(point));
-        clusterLayer.addLayer(marker);
+        clusters.addLayer(L.marker([point.lat, point.lon], { icon: markerIcon("#526d82") }).bindPopup(popupHtml(point)));
       });
-      map.addLayer(clusterLayer);
+      map.addLayer(clusters);
     } else {
       points.forEach(point => {
         bounds.push([point.lat, point.lon]);
-        const color = config.map_type === "category" ? (legendColor.get(point.category) || "#5ca8ff") : "#ff6b6b";
+        const color = config.map_type === "category" ? (palette.get(point.category) || "#457b9d") : "#526d82";
         L.marker([point.lat, point.lon], { icon: markerIcon(color) }).bindPopup(popupHtml(point)).addTo(map);
       });
     }
 
-    if (bounds.length) {
-      map.fitBounds(bounds, { padding: [20, 20] });
-    } else {
-      map.setView([-34.6037, -58.3816], 11);
-    }
+    if (bounds.length) map.fitBounds(bounds, { padding: [22, 22] }); else map.setView([-34.6037, -58.3816], 11);
 
-    const summaryRoot = document.querySelector(".summary");
-    const items = [
-      ["Total", summary.total_rows],
-      ["Validas", summary.valid_rows],
-      ["Observadas", summary.invalid_rows],
-      ["Tipo", config.map_type],
-    ];
-    if (profile) {
-      items.push(["Crimenes", profile.crimes_used]);
-      items.push(["Buffer", `${profile.buffer_radius_m} m`]);
-    }
-    items.forEach(([label, value]) => {
-      const card = document.createElement("div");
-      card.className = "card";
-      card.innerHTML = `<span>${label}</span><strong>${value}</strong>`;
-      summaryRoot.appendChild(card);
-    });
+    const reportDate = payload.cartography.created_at;
+    const anchor = profile ? profile.anchor_estimate : null;
+    const executiveText = profile
+      ? `Se procesaron ${summary.valid_rows} registros geograficamente validos sobre ${summary.total_rows} filas declaradas. El modelo Rossmo/CGT genero una superficie de prioridad y estimo un punto de anclaje aproximado en latitud ${anchor.lat.toFixed(6)} y longitud ${anchor.lon.toFixed(6)}. La lectura profesional recomendada es utilizar el resultado como guia de priorizacion territorial, no como determinacion concluyente.`
+      : `Se procesaron ${summary.valid_rows} registros geograficamente validos sobre ${summary.total_rows} filas declaradas. El producto consolida la distribucion espacial de eventos y facilita evaluar concentraciones, dispersion y consistencia geografica.`;
+
+    document.getElementById("hero-summary").textContent = profile ? "Informe de perfil geografico con superficie prioritaria, parametros reproducibles y observaciones de calidad." : "Informe cartografico de distribucion espacial con control basico de datos.";
+    document.getElementById("executive-summary").textContent = executiveText;
+    document.getElementById("map-caption").textContent = profile ? "Mapa interactivo: hechos validados, superficie de peligro relativa y punto de anclaje estimado." : "Mapa interactivo construido con las coordenadas validas del dataset.";
+    document.getElementById("summary-row").innerHTML = [
+      metric("Registros totales", summary.total_rows),
+      metric("Registros validos", summary.valid_rows),
+      metric("Registros observados", summary.invalid_rows),
+      metric("Modo", mapTypeLabel),
+      ...(profile ? [
+        metric("Hechos usados", profile.crimes_used),
+        metric("Buffer", `${formatNumber(profile.buffer_radius_m, 0)} m`),
+        metric("Celda", `${formatNumber(profile.cell_size_m, 1)} m`),
+        metric("HS%", profile.hit_score_percentage === null ? "No calculado" : `${formatNumber(profile.hit_score_percentage, 2)} %`),
+      ] : []),
+    ].join("");
+
+    addRows("identity-table", [
+      ["Fuente", reportTitle],
+      ["Fecha de emision", reportDate],
+      ["Producto", profile ? "Perfil geografico Rossmo/CGT" : mapTypeLabel],
+      ["Sistema", "GeoExcel Map v3"],
+    ]);
+    addRows("method-table", [
+      ["Mapa base", config.tile_layer],
+      ["Coordenadas", `Latitud: ${config.lat_column}<br>Longitud: ${config.lon_column}`],
+      ["Representacion", mapTypeLabel],
+       ...(["heatmap", "hotmap"].includes(config.map_type) ? [["Paleta", HEAT_PALETTES[config.heat_palette || "classic"].label], ["Niveles de intensidad relativa", (config.heat_levels || [10, 38, 58, 78, 100]).map(value => `${value} %`).join(" / ")]] : []),
+      ...(profile ? [
+        ["Modelo", "Criminal Geographic Targeting / Rossmo"],
+        ["Proyeccion", `EPSG:${profile.projection_epsg}`],
+        ["Distancia", profile.distance_metric],
+        ["Parametros", `k=${profile.scale_constant}, f=${profile.decay_exponent_out}, g=${profile.decay_exponent_in}, buffer=${profile.buffer_radius_m} m`],
+        ["Grilla", `${profile.grid_rows} x ${profile.grid_cols}`],
+      ] : []),
+    ]);
+    addRows("result-table", profile ? [
+      ["Anclaje estimado", `${anchor.lat.toFixed(6)}, ${anchor.lon.toFixed(6)}`],
+      ["Score maximo", formatNumber(anchor.score, 6)],
+      ["Superficie prioritaria", `${formatNumber((profile.jeopardy_points || []).length, 0)} puntos de calor`],
+      ["Hechos incorporados", profile.crimes_used],
+      ["Evaluacion HS%", profile.hit_score_percentage === null ? "Sin punto conocido informado" : `${formatNumber(profile.hit_score_percentage, 2)} %`],
+    ] : [
+      ["Registros representados", summary.valid_rows],
+      ["Limites de los eventos", summary.bounds ? `${summary.bounds.south}, ${summary.bounds.west}<br>${summary.bounds.north}, ${summary.bounds.east}` : "No disponible"],
+    ]);
+    list("systematic-list", profile ? [...profile.systematic_analysis, ...profile.notes] : [], "No se genero analisis sistematizado para este tipo de mapa.");
+    document.getElementById("personal-analysis").textContent = personalAnalysis;
+    list("quality-list", [...(summary.invalid_breakdown || []), ...(profile ? profile.warnings : [])], "No se detectaron advertencias criticas en los datos exportados.");
+    addCartography(map, payload);
   </script>
 </body>
 </html>

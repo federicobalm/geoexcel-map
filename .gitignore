@@ -7,5 +7,7 @@ data/sessions/
 data/exports/
 
 .DS_Store
+.env
+static/resources/screenshot/
 
 Directiva de Sistema_ Motor de Perfilado Geográfico Geo-Excelmap.md

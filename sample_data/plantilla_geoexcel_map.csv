@@ -1,5 +1,301 @@
-caso,latitud,longitud,tipo,zona,descripcion
-Caso 1,-34.6037,-58.3816,Robo,Centro,Hecho en zona comercial
-Caso 2,-34.6158,-58.4333,Hurto,Sur,Registro cercano a avenida principal
-Caso 3,-34.5895,-58.3974,Lesiones,Norte,Intervencion policial
-Caso 4,-34.6083,-58.3712,Robo,Centro,Evento con multiples testigos
+﻿caso,latitud,longitud,tipo,zona,barrio,descripcion
+Caso 1,-34.576010,-58.424860,Hurto,Norte,Palermo,Evento cercano a corredor comercial
+Caso 2,-34.584860,-58.396020,Lesiones,Norte,Recoleta,Intervencion policial con denuncia
+Caso 3,-34.600210,-58.375880,Amenazas,Centro,Microcentro,Registro en zona de transporte
+Caso 4,-34.618560,-58.377800,Daño,Sur,San Telmo,Incidente reportado por vecino
+Caso 5,-34.632110,-58.362960,Arrebato,Sur,La Boca,Caso incorporado para analisis territorial
+Caso 6,-34.616360,-58.436720,Robo,Centro,Caballito,Hecho registrado en via publica
+Caso 7,-34.627410,-58.469140,Hurto,Oeste,Flores,Evento cercano a corredor comercial
+Caso 8,-34.561960,-58.459400,Lesiones,Norte,Belgrano,Intervencion policial con denuncia
+Caso 9,-34.596910,-58.436360,Amenazas,Centro,Villa Crespo,Registro en zona de transporte
+Caso 10,-34.641760,-58.389780,Daño,Sur,Barracas,Incidente reportado por vecino
+Caso 11,-34.610110,-58.423340,Arrebato,Centro,Almagro,Caso incorporado para analisis territorial
+Caso 12,-34.593660,-58.372100,Robo,Centro,Retiro,Hecho registrado en via publica
+Caso 13,-34.582430,-58.415400,Lesiones,Norte,Palermo,Registro en zona de transporte
+Caso 14,-34.591280,-58.400820,Amenazas,Norte,Recoleta,Incidente reportado por vecino
+Caso 15,-34.606630,-58.380680,Daño,Centro,Microcentro,Caso incorporado para analisis territorial
+Caso 16,-34.624980,-58.368340,Arrebato,Sur,San Telmo,Hecho registrado en via publica
+Caso 17,-34.638530,-58.367760,Robo,Sur,La Boca,Evento cercano a corredor comercial
+Caso 18,-34.622780,-58.441520,Hurto,Centro,Caballito,Intervencion policial con denuncia
+Caso 19,-34.633830,-58.459680,Lesiones,Oeste,Flores,Registro en zona de transporte
+Caso 20,-34.557930,-58.464200,Amenazas,Norte,Belgrano,Incidente reportado por vecino
+Caso 21,-34.592880,-58.441160,Daño,Centro,Villa Crespo,Caso incorporado para analisis territorial
+Caso 22,-34.637730,-58.380320,Arrebato,Sur,Barracas,Hecho registrado en via publica
+Caso 23,-34.606080,-58.428140,Robo,Centro,Almagro,Evento cercano a corredor comercial
+Caso 24,-34.589630,-58.376900,Hurto,Centro,Retiro,Intervencion policial con denuncia
+Caso 25,-34.578400,-58.420200,Amenazas,Norte,Palermo,Caso incorporado para analisis territorial
+Caso 26,-34.587250,-58.391360,Daño,Norte,Recoleta,Hecho registrado en via publica
+Caso 27,-34.602600,-58.385480,Arrebato,Centro,Microcentro,Evento cercano a corredor comercial
+Caso 28,-34.620950,-58.373140,Robo,Sur,San Telmo,Intervencion policial con denuncia
+Caso 29,-34.634500,-58.358300,Hurto,Sur,La Boca,Registro en zona de transporte
+Caso 30,-34.618750,-58.446320,Lesiones,Centro,Caballito,Incidente reportado por vecino
+Caso 31,-34.629800,-58.464480,Amenazas,Oeste,Flores,Caso incorporado para analisis territorial
+Caso 32,-34.564350,-58.454740,Daño,Norte,Belgrano,Hecho registrado en via publica
+Caso 33,-34.599300,-58.445960,Arrebato,Centro,Villa Crespo,Evento cercano a corredor comercial
+Caso 34,-34.644150,-58.385120,Robo,Sur,Barracas,Intervencion policial con denuncia
+Caso 35,-34.612500,-58.418680,Hurto,Centro,Almagro,Registro en zona de transporte
+Caso 36,-34.596050,-58.367440,Lesiones,Centro,Retiro,Incidente reportado por vecino
+Caso 37,-34.584820,-58.425000,Daño,Norte,Palermo,Evento cercano a corredor comercial
+Caso 38,-34.593670,-58.396160,Arrebato,Norte,Recoleta,Intervencion policial con denuncia
+Caso 39,-34.598570,-58.376020,Robo,Centro,Microcentro,Registro en zona de transporte
+Caso 40,-34.616920,-58.377940,Hurto,Sur,San Telmo,Incidente reportado por vecino
+Caso 41,-34.630470,-58.363100,Lesiones,Sur,La Boca,Caso incorporado para analisis territorial
+Caso 42,-34.614720,-58.436860,Amenazas,Centro,Caballito,Hecho registrado en via publica
+Caso 43,-34.625770,-58.469280,Daño,Oeste,Flores,Evento cercano a corredor comercial
+Caso 44,-34.560320,-58.459540,Arrebato,Norte,Belgrano,Intervencion policial con denuncia
+Caso 45,-34.595270,-58.436500,Robo,Centro,Villa Crespo,Registro en zona de transporte
+Caso 46,-34.640120,-58.389920,Hurto,Sur,Barracas,Incidente reportado por vecino
+Caso 47,-34.608470,-58.423480,Lesiones,Centro,Almagro,Caso incorporado para analisis territorial
+Caso 48,-34.592020,-58.372240,Amenazas,Centro,Retiro,Hecho registrado en via publica
+Caso 49,-34.580790,-58.415540,Arrebato,Norte,Palermo,Registro en zona de transporte
+Caso 50,-34.589640,-58.400960,Robo,Norte,Recoleta,Incidente reportado por vecino
+Caso 51,-34.604990,-58.380820,Hurto,Centro,Microcentro,Caso incorporado para analisis territorial
+Caso 52,-34.623340,-58.368480,Lesiones,Sur,San Telmo,Hecho registrado en via publica
+Caso 53,-34.636890,-58.367900,Amenazas,Sur,La Boca,Evento cercano a corredor comercial
+Caso 54,-34.621140,-58.441660,Daño,Centro,Caballito,Intervencion policial con denuncia
+Caso 55,-34.632190,-58.459820,Arrebato,Oeste,Flores,Registro en zona de transporte
+Caso 56,-34.566740,-58.464340,Robo,Norte,Belgrano,Incidente reportado por vecino
+Caso 57,-34.601690,-58.441300,Hurto,Centro,Villa Crespo,Caso incorporado para analisis territorial
+Caso 58,-34.636090,-58.380460,Lesiones,Sur,Barracas,Hecho registrado en via publica
+Caso 59,-34.604440,-58.414020,Amenazas,Centro,Almagro,Evento cercano a corredor comercial
+Caso 60,-34.587990,-58.377040,Daño,Centro,Retiro,Intervencion policial con denuncia
+Caso 61,-34.577660,-58.420340,Robo,Norte,Palermo,Caso incorporado para analisis territorial
+Caso 62,-34.586510,-58.391500,Hurto,Norte,Recoleta,Hecho registrado en via publica
+Caso 63,-34.601860,-58.385620,Lesiones,Centro,Microcentro,Evento cercano a corredor comercial
+Caso 64,-34.620210,-58.373280,Amenazas,Sur,San Telmo,Intervencion policial con denuncia
+Caso 65,-34.633760,-58.358440,Daño,Sur,La Boca,Registro en zona de transporte
+Caso 66,-34.618010,-58.446460,Arrebato,Centro,Caballito,Incidente reportado por vecino
+Caso 67,-34.629060,-58.464620,Robo,Oeste,Flores,Caso incorporado para analisis territorial
+Caso 68,-34.563610,-58.454880,Hurto,Norte,Belgrano,Hecho registrado en via publica
+Caso 69,-34.598560,-58.446100,Lesiones,Centro,Villa Crespo,Evento cercano a corredor comercial
+Caso 70,-34.643410,-58.385260,Amenazas,Sur,Barracas,Intervencion policial con denuncia
+Caso 71,-34.611760,-58.418820,Daño,Centro,Almagro,Registro en zona de transporte
+Caso 72,-34.595310,-58.367580,Arrebato,Centro,Retiro,Incidente reportado por vecino
+Caso 73,-34.584080,-58.425140,Hurto,Norte,Palermo,Evento cercano a corredor comercial
+Caso 74,-34.592930,-58.396300,Lesiones,Norte,Recoleta,Intervencion policial con denuncia
+Caso 75,-34.608280,-58.376160,Amenazas,Centro,Microcentro,Registro en zona de transporte
+Caso 76,-34.626630,-58.378080,Daño,Sur,San Telmo,Incidente reportado por vecino
+Caso 77,-34.629730,-58.363240,Arrebato,Sur,La Boca,Caso incorporado para analisis territorial
+Caso 78,-34.613980,-58.437000,Robo,Centro,Caballito,Hecho registrado en via publica
+Caso 79,-34.625030,-58.469420,Hurto,Oeste,Flores,Evento cercano a corredor comercial
+Caso 80,-34.559580,-58.459680,Lesiones,Norte,Belgrano,Intervencion policial con denuncia
+Caso 81,-34.594530,-58.436640,Amenazas,Centro,Villa Crespo,Registro en zona de transporte
+Caso 82,-34.639380,-58.375800,Daño,Sur,Barracas,Incidente reportado por vecino
+Caso 83,-34.607730,-58.423620,Arrebato,Centro,Almagro,Caso incorporado para analisis territorial
+Caso 84,-34.591280,-58.372380,Robo,Centro,Retiro,Hecho registrado en via publica
+Caso 85,-34.580050,-58.416800,Lesiones,Norte,Palermo,Registro en zona de transporte
+Caso 86,-34.588900,-58.402220,Amenazas,Norte,Recoleta,Incidente reportado por vecino
+Caso 87,-34.604250,-58.382080,Daño,Centro,Microcentro,Caso incorporado para analisis territorial
+Caso 88,-34.622600,-58.369740,Arrebato,Sur,San Telmo,Hecho registrado en via publica
+Caso 89,-34.636150,-58.369160,Robo,Sur,La Boca,Evento cercano a corredor comercial
+Caso 90,-34.620400,-58.442920,Hurto,Centro,Caballito,Intervencion policial con denuncia
+Caso 91,-34.631450,-58.461080,Lesiones,Oeste,Flores,Registro en zona de transporte
+Caso 92,-34.566000,-58.465600,Amenazas,Norte,Belgrano,Incidente reportado por vecino
+Caso 93,-34.600950,-58.442560,Daño,Centro,Villa Crespo,Caso incorporado para analisis territorial
+Caso 94,-34.645800,-58.381720,Arrebato,Sur,Barracas,Hecho registrado en via publica
+Caso 95,-34.614150,-58.415280,Robo,Centro,Almagro,Evento cercano a corredor comercial
+Caso 96,-34.587250,-58.378300,Hurto,Centro,Retiro,Intervencion policial con denuncia
+Caso 97,-34.576020,-58.421600,Amenazas,Norte,Palermo,Caso incorporado para analisis territorial
+Caso 98,-34.584870,-58.392760,Daño,Norte,Recoleta,Hecho registrado en via publica
+Caso 99,-34.600220,-58.386880,Arrebato,Centro,Microcentro,Evento cercano a corredor comercial
+Caso 100,-34.618570,-58.374540,Robo,Sur,San Telmo,Intervencion policial con denuncia
+Caso 101,-34.632120,-58.359700,Hurto,Sur,La Boca,Registro en zona de transporte
+Caso 102,-34.616370,-58.447720,Lesiones,Centro,Caballito,Incidente reportado por vecino
+Caso 103,-34.627420,-58.465880,Amenazas,Oeste,Flores,Caso incorporado para analisis territorial
+Caso 104,-34.561970,-58.456140,Daño,Norte,Belgrano,Hecho registrado en via publica
+Caso 105,-34.596920,-58.433100,Arrebato,Centro,Villa Crespo,Evento cercano a corredor comercial
+Caso 106,-34.641770,-58.386520,Robo,Sur,Barracas,Intervencion policial con denuncia
+Caso 107,-34.610120,-58.420080,Hurto,Centro,Almagro,Registro en zona de transporte
+Caso 108,-34.593670,-58.368840,Lesiones,Centro,Retiro,Incidente reportado por vecino
+Caso 109,-34.582440,-58.426400,Daño,Norte,Palermo,Evento cercano a corredor comercial
+Caso 110,-34.591290,-58.397560,Arrebato,Norte,Recoleta,Intervencion policial con denuncia
+Caso 111,-34.606640,-58.377420,Robo,Centro,Microcentro,Registro en zona de transporte
+Caso 112,-34.624990,-58.379340,Hurto,Sur,San Telmo,Incidente reportado por vecino
+Caso 113,-34.638540,-58.364500,Lesiones,Sur,La Boca,Caso incorporado para analisis territorial
+Caso 114,-34.622790,-58.438260,Amenazas,Centro,Caballito,Hecho registrado en via publica
+Caso 115,-34.623390,-58.470680,Daño,Oeste,Flores,Evento cercano a corredor comercial
+Caso 116,-34.557940,-58.460940,Arrebato,Norte,Belgrano,Intervencion policial con denuncia
+Caso 117,-34.592890,-58.437900,Robo,Centro,Villa Crespo,Registro en zona de transporte
+Caso 118,-34.637740,-58.377060,Hurto,Sur,Barracas,Incidente reportado por vecino
+Caso 119,-34.606090,-58.424880,Lesiones,Centro,Almagro,Caso incorporado para analisis territorial
+Caso 120,-34.589640,-58.373640,Amenazas,Centro,Retiro,Hecho registrado en via publica
+Caso 121,-34.579310,-58.416940,Arrebato,Norte,Palermo,Registro en zona de transporte
+Caso 122,-34.588160,-58.402360,Robo,Norte,Recoleta,Incidente reportado por vecino
+Caso 123,-34.603510,-58.382220,Hurto,Centro,Microcentro,Caso incorporado para analisis territorial
+Caso 124,-34.621860,-58.369880,Lesiones,Sur,San Telmo,Hecho registrado en via publica
+Caso 125,-34.635410,-58.369300,Amenazas,Sur,La Boca,Evento cercano a corredor comercial
+Caso 126,-34.619660,-58.443060,Daño,Centro,Caballito,Intervencion policial con denuncia
+Caso 127,-34.630710,-58.461220,Arrebato,Oeste,Flores,Registro en zona de transporte
+Caso 128,-34.565260,-58.451480,Robo,Norte,Belgrano,Incidente reportado por vecino
+Caso 129,-34.600210,-58.442700,Hurto,Centro,Villa Crespo,Caso incorporado para analisis territorial
+Caso 130,-34.645060,-58.381860,Lesiones,Sur,Barracas,Hecho registrado en via publica
+Caso 131,-34.613410,-58.415420,Amenazas,Centro,Almagro,Evento cercano a corredor comercial
+Caso 132,-34.596960,-58.378440,Daño,Centro,Retiro,Intervencion policial con denuncia
+Caso 133,-34.585730,-58.421740,Robo,Norte,Palermo,Caso incorporado para analisis territorial
+Caso 134,-34.584130,-58.392900,Hurto,Norte,Recoleta,Hecho registrado en via publica
+Caso 135,-34.599480,-58.387020,Lesiones,Centro,Microcentro,Evento cercano a corredor comercial
+Caso 136,-34.617830,-58.374680,Amenazas,Sur,San Telmo,Intervencion policial con denuncia
+Caso 137,-34.631380,-58.359840,Daño,Sur,La Boca,Registro en zona de transporte
+Caso 138,-34.615630,-58.447860,Arrebato,Centro,Caballito,Incidente reportado por vecino
+Caso 139,-34.626680,-58.466020,Robo,Oeste,Flores,Caso incorporado para analisis territorial
+Caso 140,-34.561230,-58.456280,Hurto,Norte,Belgrano,Hecho registrado en via publica
+Caso 141,-34.596180,-58.433240,Lesiones,Centro,Villa Crespo,Evento cercano a corredor comercial
+Caso 142,-34.641030,-58.386660,Amenazas,Sur,Barracas,Intervencion policial con denuncia
+Caso 143,-34.609380,-58.420220,Daño,Centro,Almagro,Registro en zona de transporte
+Caso 144,-34.592930,-58.368980,Arrebato,Centro,Retiro,Incidente reportado por vecino
+Caso 145,-34.581700,-58.426540,Hurto,Norte,Palermo,Evento cercano a corredor comercial
+Caso 146,-34.590550,-58.397700,Lesiones,Norte,Recoleta,Intervencion policial con denuncia
+Caso 147,-34.605900,-58.377560,Amenazas,Centro,Microcentro,Registro en zona de transporte
+Caso 148,-34.624250,-58.379480,Daño,Sur,San Telmo,Incidente reportado por vecino
+Caso 149,-34.637800,-58.364640,Arrebato,Sur,La Boca,Caso incorporado para analisis territorial
+Caso 150,-34.622050,-58.438400,Robo,Centro,Caballito,Hecho registrado en via publica
+Caso 151,-34.633100,-58.456560,Hurto,Oeste,Flores,Evento cercano a corredor comercial
+Caso 152,-34.567650,-58.461080,Lesiones,Norte,Belgrano,Intervencion policial con denuncia
+Caso 153,-34.592150,-58.438040,Amenazas,Centro,Villa Crespo,Registro en zona de transporte
+Caso 154,-34.637000,-58.377200,Daño,Sur,Barracas,Incidente reportado por vecino
+Caso 155,-34.605350,-58.425020,Arrebato,Centro,Almagro,Caso incorporado para analisis territorial
+Caso 156,-34.588900,-58.373780,Robo,Centro,Retiro,Hecho registrado en via publica
+Caso 157,-34.577670,-58.417080,Lesiones,Norte,Palermo,Registro en zona de transporte
+Caso 158,-34.586520,-58.402500,Amenazas,Norte,Recoleta,Incidente reportado por vecino
+Caso 159,-34.601870,-58.382360,Daño,Centro,Microcentro,Caso incorporado para analisis territorial
+Caso 160,-34.620220,-58.370020,Arrebato,Sur,San Telmo,Hecho registrado en via publica
+Caso 161,-34.633770,-58.369440,Robo,Sur,La Boca,Evento cercano a corredor comercial
+Caso 162,-34.618020,-58.443200,Hurto,Centro,Caballito,Intervencion policial con denuncia
+Caso 163,-34.629070,-58.461360,Lesiones,Oeste,Flores,Registro en zona de transporte
+Caso 164,-34.563620,-58.451620,Amenazas,Norte,Belgrano,Incidente reportado por vecino
+Caso 165,-34.598570,-58.442840,Daño,Centro,Villa Crespo,Caso incorporado para analisis territorial
+Caso 166,-34.643420,-58.382000,Arrebato,Sur,Barracas,Hecho registrado en via publica
+Caso 167,-34.611770,-58.415560,Robo,Centro,Almagro,Evento cercano a corredor comercial
+Caso 168,-34.595320,-58.378580,Hurto,Centro,Retiro,Intervencion policial con denuncia
+Caso 169,-34.584090,-58.423000,Amenazas,Norte,Palermo,Caso incorporado para analisis territorial
+Caso 170,-34.592940,-58.394160,Daño,Norte,Recoleta,Hecho registrado en via publica
+Caso 171,-34.608290,-58.388280,Arrebato,Centro,Microcentro,Evento cercano a corredor comercial
+Caso 172,-34.616190,-58.375940,Robo,Sur,San Telmo,Intervencion policial con denuncia
+Caso 173,-34.629740,-58.361100,Hurto,Sur,La Boca,Registro en zona de transporte
+Caso 174,-34.613990,-58.434860,Lesiones,Centro,Caballito,Incidente reportado por vecino
+Caso 175,-34.625040,-58.467280,Amenazas,Oeste,Flores,Caso incorporado para analisis territorial
+Caso 176,-34.559590,-58.457540,Daño,Norte,Belgrano,Hecho registrado en via publica
+Caso 177,-34.594540,-58.434500,Arrebato,Centro,Villa Crespo,Evento cercano a corredor comercial
+Caso 178,-34.639390,-58.387920,Robo,Sur,Barracas,Intervencion policial con denuncia
+Caso 179,-34.607740,-58.421480,Hurto,Centro,Almagro,Registro en zona de transporte
+Caso 180,-34.591290,-58.370240,Lesiones,Centro,Retiro,Incidente reportado por vecino
+Caso 181,-34.580960,-58.427800,Daño,Norte,Palermo,Evento cercano a corredor comercial
+Caso 182,-34.589810,-58.398960,Arrebato,Norte,Recoleta,Intervencion policial con denuncia
+Caso 183,-34.605160,-58.378820,Robo,Centro,Microcentro,Registro en zona de transporte
+Caso 184,-34.623510,-58.380740,Hurto,Sur,San Telmo,Incidente reportado por vecino
+Caso 185,-34.637060,-58.365900,Lesiones,Sur,La Boca,Caso incorporado para analisis territorial
+Caso 186,-34.621310,-58.439660,Amenazas,Centro,Caballito,Hecho registrado en via publica
+Caso 187,-34.632360,-58.457820,Daño,Oeste,Flores,Evento cercano a corredor comercial
+Caso 188,-34.566910,-58.462340,Arrebato,Norte,Belgrano,Intervencion policial con denuncia
+Caso 189,-34.601860,-58.439300,Robo,Centro,Villa Crespo,Registro en zona de transporte
+Caso 190,-34.646710,-58.378460,Hurto,Sur,Barracas,Incidente reportado por vecino
+Caso 191,-34.604610,-58.426280,Lesiones,Centro,Almagro,Caso incorporado para analisis territorial
+Caso 192,-34.588160,-58.375040,Amenazas,Centro,Retiro,Hecho registrado en via publica
+Caso 193,-34.576930,-58.418340,Arrebato,Norte,Palermo,Registro en zona de transporte
+Caso 194,-34.585780,-58.403760,Robo,Norte,Recoleta,Incidente reportado por vecino
+Caso 195,-34.601130,-58.383620,Hurto,Centro,Microcentro,Caso incorporado para analisis territorial
+Caso 196,-34.619480,-58.371280,Lesiones,Sur,San Telmo,Hecho registrado en via publica
+Caso 197,-34.633030,-58.356440,Amenazas,Sur,La Boca,Evento cercano a corredor comercial
+Caso 198,-34.617280,-58.444460,Daño,Centro,Caballito,Intervencion policial con denuncia
+Caso 199,-34.628330,-58.462620,Arrebato,Oeste,Flores,Registro en zona de transporte
+Caso 200,-34.562880,-58.452880,Robo,Norte,Belgrano,Incidente reportado por vecino
+Caso 201,-34.597830,-58.444100,Hurto,Centro,Villa Crespo,Caso incorporado para analisis territorial
+Caso 202,-34.642680,-58.383260,Lesiones,Sur,Barracas,Hecho registrado en via publica
+Caso 203,-34.611030,-58.416820,Amenazas,Centro,Almagro,Evento cercano a corredor comercial
+Caso 204,-34.594580,-58.379840,Daño,Centro,Retiro,Intervencion policial con denuncia
+Caso 205,-34.583350,-58.423140,Robo,Norte,Palermo,Caso incorporado para analisis territorial
+Caso 206,-34.592200,-58.394300,Hurto,Norte,Recoleta,Hecho registrado en via publica
+Caso 207,-34.607550,-58.388420,Lesiones,Centro,Microcentro,Evento cercano a corredor comercial
+Caso 208,-34.625900,-58.376080,Amenazas,Sur,San Telmo,Intervencion policial con denuncia
+Caso 209,-34.639450,-58.361240,Daño,Sur,La Boca,Registro en zona de transporte
+Caso 210,-34.613250,-58.435000,Arrebato,Centro,Caballito,Incidente reportado por vecino
+Caso 211,-34.624300,-58.467420,Robo,Oeste,Flores,Caso incorporado para analisis territorial
+Caso 212,-34.558850,-58.457680,Hurto,Norte,Belgrano,Hecho registrado en via publica
+Caso 213,-34.593800,-58.434640,Lesiones,Centro,Villa Crespo,Evento cercano a corredor comercial
+Caso 214,-34.638650,-58.388060,Amenazas,Sur,Barracas,Intervencion policial con denuncia
+Caso 215,-34.607000,-58.421620,Daño,Centro,Almagro,Registro en zona de transporte
+Caso 216,-34.590550,-58.370380,Arrebato,Centro,Retiro,Incidente reportado por vecino
+Caso 217,-34.579320,-58.427940,Hurto,Norte,Palermo,Evento cercano a corredor comercial
+Caso 218,-34.588170,-58.399100,Lesiones,Norte,Recoleta,Intervencion policial con denuncia
+Caso 219,-34.603520,-58.378960,Amenazas,Centro,Microcentro,Registro en zona de transporte
+Caso 220,-34.621870,-58.366620,Daño,Sur,San Telmo,Incidente reportado por vecino
+Caso 221,-34.635420,-58.366040,Arrebato,Sur,La Boca,Caso incorporado para analisis territorial
+Caso 222,-34.619670,-58.439800,Robo,Centro,Caballito,Hecho registrado en via publica
+Caso 223,-34.630720,-58.457960,Hurto,Oeste,Flores,Evento cercano a corredor comercial
+Caso 224,-34.565270,-58.462480,Lesiones,Norte,Belgrano,Intervencion policial con denuncia
+Caso 225,-34.600220,-58.439440,Amenazas,Centro,Villa Crespo,Registro en zona de transporte
+Caso 226,-34.645070,-58.378600,Daño,Sur,Barracas,Incidente reportado por vecino
+Caso 227,-34.613420,-58.426420,Arrebato,Centro,Almagro,Caso incorporado para analisis territorial
+Caso 228,-34.596970,-58.375180,Robo,Centro,Retiro,Hecho registrado en via publica
+Caso 229,-34.575290,-58.418480,Lesiones,Norte,Palermo,Registro en zona de transporte
+Caso 230,-34.584140,-58.403900,Amenazas,Norte,Recoleta,Incidente reportado por vecino
+Caso 231,-34.599490,-58.383760,Daño,Centro,Microcentro,Caso incorporado para analisis territorial
+Caso 232,-34.617840,-58.371420,Arrebato,Sur,San Telmo,Hecho registrado en via publica
+Caso 233,-34.631390,-58.356580,Robo,Sur,La Boca,Evento cercano a corredor comercial
+Caso 234,-34.615640,-58.444600,Hurto,Centro,Caballito,Intervencion policial con denuncia
+Caso 235,-34.626690,-58.462760,Lesiones,Oeste,Flores,Registro en zona de transporte
+Caso 236,-34.561240,-58.453020,Amenazas,Norte,Belgrano,Incidente reportado por vecino
+Caso 237,-34.596190,-58.444240,Daño,Centro,Villa Crespo,Caso incorporado para analisis territorial
+Caso 238,-34.641040,-58.383400,Arrebato,Sur,Barracas,Hecho registrado en via publica
+Caso 239,-34.609390,-58.416960,Robo,Centro,Almagro,Evento cercano a corredor comercial
+Caso 240,-34.592940,-58.379980,Hurto,Centro,Retiro,Intervencion policial con denuncia
+Caso 241,-34.582610,-58.423280,Amenazas,Norte,Palermo,Caso incorporado para analisis territorial
+Caso 242,-34.591460,-58.394440,Daño,Norte,Recoleta,Hecho registrado en via publica
+Caso 243,-34.606810,-58.374300,Arrebato,Centro,Microcentro,Evento cercano a corredor comercial
+Caso 244,-34.625160,-58.376220,Robo,Sur,San Telmo,Intervencion policial con denuncia
+Caso 245,-34.638710,-58.361380,Hurto,Sur,La Boca,Registro en zona de transporte
+Caso 246,-34.622960,-58.435140,Lesiones,Centro,Caballito,Incidente reportado por vecino
+Caso 247,-34.634010,-58.467560,Amenazas,Oeste,Flores,Caso incorporado para analisis territorial
+Caso 248,-34.558110,-58.457820,Daño,Norte,Belgrano,Hecho registrado en via publica
+Caso 249,-34.593060,-58.434780,Arrebato,Centro,Villa Crespo,Evento cercano a corredor comercial
+Caso 250,-34.637910,-58.388200,Robo,Sur,Barracas,Intervencion policial con denuncia
+Caso 251,-34.606260,-58.421760,Hurto,Centro,Almagro,Registro en zona de transporte
+Caso 252,-34.589810,-58.370520,Lesiones,Centro,Retiro,Incidente reportado por vecino
+Caso 253,-34.578580,-58.429200,Daño,Norte,Palermo,Evento cercano a corredor comercial
+Caso 254,-34.587430,-58.400360,Arrebato,Norte,Recoleta,Intervencion policial con denuncia
+Caso 255,-34.602780,-58.380220,Robo,Centro,Microcentro,Registro en zona de transporte
+Caso 256,-34.621130,-58.367880,Hurto,Sur,San Telmo,Incidente reportado por vecino
+Caso 257,-34.634680,-58.367300,Lesiones,Sur,La Boca,Caso incorporado para analisis territorial
+Caso 258,-34.618930,-58.441060,Amenazas,Centro,Caballito,Hecho registrado en via publica
+Caso 259,-34.629980,-58.459220,Daño,Oeste,Flores,Evento cercano a corredor comercial
+Caso 260,-34.564530,-58.463740,Arrebato,Norte,Belgrano,Intervencion policial con denuncia
+Caso 261,-34.599480,-58.440700,Robo,Centro,Villa Crespo,Registro en zona de transporte
+Caso 262,-34.644330,-58.379860,Hurto,Sur,Barracas,Incidente reportado por vecino
+Caso 263,-34.612680,-58.427680,Lesiones,Centro,Almagro,Caso incorporado para analisis territorial
+Caso 264,-34.596230,-58.376440,Amenazas,Centro,Retiro,Hecho registrado en via publica
+Caso 265,-34.585000,-58.419740,Arrebato,Norte,Palermo,Registro en zona de transporte
+Caso 266,-34.593850,-58.390900,Robo,Norte,Recoleta,Incidente reportado por vecino
+Caso 267,-34.598750,-58.385020,Hurto,Centro,Microcentro,Caso incorporado para analisis territorial
+Caso 268,-34.617100,-58.372680,Lesiones,Sur,San Telmo,Hecho registrado en via publica
+Caso 269,-34.630650,-58.357840,Amenazas,Sur,La Boca,Evento cercano a corredor comercial
+Caso 270,-34.614900,-58.445860,Daño,Centro,Caballito,Intervencion policial con denuncia
+Caso 271,-34.625950,-58.464020,Arrebato,Oeste,Flores,Registro en zona de transporte
+Caso 272,-34.560500,-58.454280,Robo,Norte,Belgrano,Incidente reportado por vecino
+Caso 273,-34.595450,-58.445500,Hurto,Centro,Villa Crespo,Caso incorporado para analisis territorial
+Caso 274,-34.640300,-58.384660,Lesiones,Sur,Barracas,Hecho registrado en via publica
+Caso 275,-34.608650,-58.418220,Amenazas,Centro,Almagro,Evento cercano a corredor comercial
+Caso 276,-34.592200,-58.381240,Daño,Centro,Retiro,Intervencion policial con denuncia
+Caso 277,-34.580970,-58.424540,Robo,Norte,Palermo,Caso incorporado para analisis territorial
+Caso 278,-34.589820,-58.395700,Hurto,Norte,Recoleta,Hecho registrado en via publica
+Caso 279,-34.605170,-58.375560,Lesiones,Centro,Microcentro,Evento cercano a corredor comercial
+Caso 280,-34.623520,-58.377480,Amenazas,Sur,San Telmo,Intervencion policial con denuncia
+Caso 281,-34.637070,-58.362640,Daño,Sur,La Boca,Registro en zona de transporte
+Caso 282,-34.621320,-58.436400,Arrebato,Centro,Caballito,Incidente reportado por vecino
+Caso 283,-34.632370,-58.468820,Robo,Oeste,Flores,Caso incorporado para analisis territorial
+Caso 284,-34.566920,-58.459080,Hurto,Norte,Belgrano,Hecho registrado en via publica
+Caso 285,-34.601870,-58.436040,Lesiones,Centro,Villa Crespo,Evento cercano a corredor comercial
+Caso 286,-34.636270,-58.389460,Amenazas,Sur,Barracas,Intervencion policial con denuncia
+Caso 287,-34.604620,-58.423020,Daño,Centro,Almagro,Registro en zona de transporte
+Caso 288,-34.588170,-58.371780,Arrebato,Centro,Retiro,Incidente reportado por vecino
+Caso 289,-34.576940,-58.415080,Hurto,Norte,Palermo,Evento cercano a corredor comercial
+Caso 290,-34.585790,-58.400500,Lesiones,Norte,Recoleta,Intervencion policial con denuncia
+Caso 291,-34.601140,-58.380360,Amenazas,Centro,Microcentro,Registro en zona de transporte
+Caso 292,-34.619490,-58.368020,Daño,Sur,San Telmo,Incidente reportado por vecino
+Caso 293,-34.633040,-58.367440,Arrebato,Sur,La Boca,Caso incorporado para analisis territorial
+Caso 294,-34.617290,-58.441200,Robo,Centro,Caballito,Hecho registrado en via publica
+Caso 295,-34.628340,-58.459360,Hurto,Oeste,Flores,Evento cercano a corredor comercial
+Caso 296,-34.562890,-58.463880,Lesiones,Norte,Belgrano,Intervencion policial con denuncia
+Caso 297,-34.597840,-58.440840,Amenazas,Centro,Villa Crespo,Registro en zona de transporte
+Caso 298,-34.642690,-58.380000,Daño,Sur,Barracas,Incidente reportado por vecino
+Caso 299,-34.611040,-58.427820,Arrebato,Centro,Almagro,Caso incorporado para analisis territorial
+Caso 300,-34.594590,-58.376580,Robo,Centro,Retiro,Hecho registrado en via publica

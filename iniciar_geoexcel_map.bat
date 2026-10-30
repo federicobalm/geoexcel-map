@@ -4,6 +4,8 @@ title GeoExcel Map v3
 
 cd /d "%~dp0"
 
+if exist ".venv\Scripts\python.exe" goto :setup
+
 set "PYTHON_CMD="
 where py >nul 2>&1
 if not errorlevel 1 set "PYTHON_CMD=py"
@@ -29,6 +31,7 @@ if not exist ".venv\Scripts\python.exe" (
     if errorlevel 1 goto :fail
 )
 
+:setup
 if not exist ".venv\.setup_complete" (
     echo.
     echo Instalando dependencias iniciales...
@@ -44,10 +47,11 @@ if not exist ".venv\.setup_complete" (
 )
 
 echo.
-echo Iniciando GeoExcel Map v3 en http://127.0.0.1:8000
-start "" "http://127.0.0.1:8000"
-call ".venv\Scripts\python.exe" app.py
-exit /b %errorlevel%
+echo Iniciando GeoExcel Map v3. El navegador se abrira cuando este listo.
+call ".venv\Scripts\python.exe" launcher.py
+set "LAUNCH_EXIT=%errorlevel%"
+if not "%LAUNCH_EXIT%"=="0" pause
+exit /b %LAUNCH_EXIT%
 
 :fail
 echo.

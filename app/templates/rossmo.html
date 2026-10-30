@@ -1,0 +1,235 @@
+{% extends "base.html" %}
+{% block title %}Perfilado Rossmo | {{ app_name }}{% endblock %}
+{% block body %}
+<div class="page-shell" id="main-content">
+  <header class="page-heading">
+    <div>
+      <h1>Análisis Rossmo</h1>
+      <p>De una serie de hechos a tu informe, paso a paso.</p>
+    </div>
+    <a href="/sample_data/serie_rossmo_demo.csv" download class="ghost-link">Descargar ejemplo Rossmo</a>
+  </header>
+
+  <div id="rossmo-feedback" class="inline-feedback" role="status" aria-live="polite" hidden></div>
+
+  <section class="wizard-progress" aria-label="Progreso del flujo Rossmo">
+    <div class="wizard-progress-item is-active" data-progress-step="1"><span>1</span><strong>Cargar</strong></div>
+    <div class="wizard-progress-item" data-progress-step="2"><span>2</span><strong>Verificar</strong></div>
+    <div class="wizard-progress-item" data-progress-step="3"><span>3</span><strong>Analizar</strong></div>
+    <div class="wizard-progress-item" data-progress-step="4"><span>4</span><strong>Previsualizar</strong></div>
+    <div class="wizard-progress-item" data-progress-step="5"><span>5</span><strong>Interpretar</strong></div>
+    <div class="wizard-progress-item" data-progress-step="6"><span>6</span><strong>Exportar</strong></div>
+  </section>
+
+  <main class="rossmo-layout">
+    <section class="panel workflow-step wizard-step" id="step-upload" data-step="1">
+      <div class="panel-header">
+        <p class="panel-step">Paso 1</p>
+        <h2>Elegí una serie de hechos</h2>
+        <p>Cargá tu planilla o empezá con el ejemplo.</p>
+      </div>
+      <details class="disclosure"><summary>¿Qué datos necesito?</summary><p>Una serie de hechos vinculados con latitud y longitud. También podés incluir identificador, fecha, hora y tipo de hecho.</p></details>
+      <form id="rossmo-upload-form" class="stack-form">
+        <label class="file-dropzone" for="rossmo-data-file">
+          <input id="rossmo-data-file" name="file" type="file" accept=".csv,.xlsx">
+          <span class="drop-title">Seleccionar serie</span>
+          <span class="drop-help">Series vinculadas en CSV o XLSX</span>
+        </label>
+        <div class="dual-actions">
+          <button type="submit" class="primary-button">Cargar serie</button>
+          <button id="rossmo-load-dataset" type="button" class="secondary-button">Usar ejemplo Rossmo</button>
+        </div>
+      </form>
+      <div class="step-actions">
+        <button id="rossmo-next-from-upload" type="button" class="primary-button" disabled>Siguiente</button>
+      </div>
+    </section>
+
+    <section class="panel workflow-step wizard-step is-locked" id="step-verify" data-step="2" aria-disabled="true" hidden>
+      <div class="panel-header">
+        <p class="panel-step">Paso 2</p>
+        <h2>Verificar datos</h2>
+        <p>Confirma columnas, revisa el resumen y habilita el analisis computacional.</p>
+      </div>
+      <div id="rossmo-summary" class="summary-strip"></div>
+      <div id="rossmo-notes" class="note-list"></div>
+      <form id="rossmo-verify-form" class="config-grid">
+        {% set prefix = 'rossmo' %}{% include 'cartographic_form.html' %}
+        <div>
+          <label for="rossmo-lat-column">Latitud</label>
+          <select id="rossmo-lat-column" required></select>
+        </div>
+        <div>
+          <label for="rossmo-lon-column">Longitud</label>
+          <select id="rossmo-lon-column" required></select>
+        </div>
+        <div>
+          <label for="rossmo-label-column">Etiqueta</label>
+          <select id="rossmo-label-column"></select>
+        </div>
+        <div>
+          <label for="rossmo-category-column">Categoria</label>
+          <select id="rossmo-category-column"></select>
+        </div>
+        <div class="config-actions">
+          <button id="rossmo-back-to-upload" type="button" class="secondary-button">Volver</button>
+          <button type="submit" class="primary-button">Validar datos y continuar</button>
+        </div>
+      </form>
+      <div class="step-actions">
+        <button id="rossmo-next-from-verify" type="button" class="primary-button" disabled>Siguiente</button>
+      </div>
+      <div class="preview-table-wrap">
+        <div class="subhead-row">
+          <h3>Vista previa</h3>
+          <span>Primeras filas de la serie</span>
+        </div>
+        <div class="table-shell">
+          <table id="rossmo-preview-table"></table>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel workflow-step wizard-step is-locked" id="step-compute" data-step="3" aria-disabled="true" hidden>
+      <div class="panel-header">
+        <p class="panel-step">Paso 3</p>
+        <h2>Prepará el análisis</h2>
+        <p>Revisá la distancia y el radio antes de calcular.</p>
+      </div>
+      <form id="rossmo-compute-form" class="config-grid">
+        <div>
+          <label for="rossmo-tile-layer">Mapa base</label>
+          <select id="rossmo-tile-layer">
+            <option>OpenStreetMap</option>
+            <option value="Esri Light Gray">Claro · Esri</option>
+            <option value="Esri Dark Gray">Oscuro · Esri</option>
+            <option value="Esri World Imagery">Satélite · Esri</option>
+          </select>
+        </div>
+        <div>
+          <label for="rossmo-distance-metric">Metrica de distancia</label>
+          <select id="rossmo-distance-metric">
+            <option value="manhattan">Manhattan (urbano)</option>
+            <option value="euclidean">Euclidiana (rural)</option>
+          </select>
+        </div>
+        <div>
+          <label for="rossmo-buffer-radius-m">Buffer Rossmo (m)</label>
+          <input id="rossmo-buffer-radius-m" type="number" min="50" max="5000" step="50" value="400">
+        </div>
+        <details class="disclosure advanced-rossmo"><summary>Parámetros avanzados y evaluación retrospectiva</summary><div class="config-grid">
+        <div>
+          <label for="rossmo-scale-constant">Constante k</label>
+          <input id="rossmo-scale-constant" type="number" min="0.1" max="1000" step="0.1" value="1.0">
+        </div>
+        <div>
+          <label for="rossmo-decay-exponent-out">Exponente exterior f</label>
+          <input id="rossmo-decay-exponent-out" type="number" min="0.1" max="6" step="0.1" value="1.2">
+        </div>
+        <div>
+          <label for="rossmo-decay-exponent-in">Exponente interior g</label>
+          <input id="rossmo-decay-exponent-in" type="number" min="0.1" max="8" step="0.1" value="2.0">
+        </div>
+        <div>
+          <label for="rossmo-known-anchor-lat">Lat anclaje conocido (opcional)</label>
+          <input id="rossmo-known-anchor-lat" type="number" min="-90" max="90" step="0.000001">
+        </div>
+        <div>
+          <label for="rossmo-known-anchor-lon">Lon anclaje conocido (opcional)</label>
+          <input id="rossmo-known-anchor-lon" type="number" min="-180" max="180" step="0.000001">
+        </div>
+        </div></details>
+        <div class="config-actions">
+          <button id="rossmo-back-to-verify" type="button" class="secondary-button">Volver</button>
+          <button type="submit" class="primary-button">Ejecutar analisis Rossmo</button>
+        </div>
+      </form>
+      <div class="step-actions">
+        <button id="rossmo-next-from-compute" type="button" class="primary-button" disabled>Siguiente</button>
+      </div>
+    </section>
+
+    <section class="panel workflow-step wizard-step is-locked" id="step-preview" data-step="4" aria-disabled="true" hidden>
+      <div class="panel-header">
+        <p class="panel-step">Paso 4</p>
+        <h2>Explorá el resultado</h2>
+        <p>Revisá la concentración espacial y el anclaje estimado.</p>
+      </div>
+      <div class="result-grid">
+        <div class="map-frame">
+          <div id="rossmo-map"></div>
+          <div id="rossmo-map-empty" class="map-placeholder">La previsualizacion aparecera aca luego del analisis computacional.</div>
+        </div>
+        <aside class="result-sidebar">
+          <div class="metric-card">
+            <span>Filas validas</span>
+            <strong id="rossmo-valid-rows">0</strong>
+          </div>
+          <div class="metric-card metric-card-alt">
+            <span>Filas observadas</span>
+            <strong id="rossmo-invalid-rows">0</strong>
+          </div>
+          <div class="issues-card">
+            <h3>Hallazgos</h3>
+            <ul id="rossmo-issues-list"></ul>
+          </div>
+          <div class="issues-card">
+            <h3>Perfil sistemico</h3>
+            <div id="rossmo-profile-metrics" class="profile-metrics"></div>
+          </div>
+        </aside>
+      </div>
+      <div class="step-actions">
+        <button id="rossmo-back-to-compute" type="button" class="secondary-button">Volver</button>
+        <button id="rossmo-continue-analysis" type="button" class="primary-button" disabled>Siguiente</button>
+      </div>
+    </section>
+
+    <section class="panel workflow-step wizard-step is-locked" id="step-analysis" data-step="5" aria-disabled="true" hidden>
+      <div class="panel-header">
+        <p class="panel-step">Paso 5</p>
+        <h2>¿Cómo interpretás el mapa?</h2>
+        <p>Contrastá los resultados del modelo con tu propia lectura.</p>
+      </div>
+      <div class="analysis-grid">
+        <div class="issues-card">
+          <h3>Analisis sistematizado</h3>
+          <ul id="rossmo-systematic-analysis"></ul>
+        </div>
+        <div class="issues-card">
+          <h3><label for="rossmo-personal-analysis">Tu interpretación</label></h3>
+          <textarea id="rossmo-personal-analysis" class="analysis-textarea" placeholder="Redacta aqui tu interpretacion criminologica, las hipotesis de base operativa y los criterios de priorizacion."></textarea>
+        </div>
+      </div>
+      <div class="step-actions">
+        <button id="rossmo-back-to-preview" type="button" class="secondary-button">Volver</button>
+        <button id="rossmo-confirm-analysis" type="button" class="primary-button" disabled>Siguiente</button>
+      </div>
+    </section>
+
+    <section class="panel workflow-step wizard-step is-locked" id="step-export" data-step="6" aria-disabled="true" hidden>
+      <div class="panel-header">
+        <p class="panel-step">Paso 6</p>
+        <h2>Tu informe está listo para descargar</h2>
+        <p>PDF para entregar. HTML para explorar el mapa.</p>
+      </div>
+      <div class="step-actions">
+        <button id="rossmo-back-to-analysis" type="button" class="secondary-button">Volver</button>
+      </div>
+      <div class="export-actions export-actions-inline">
+        <button id="rossmo-export-html" class="secondary-button" disabled>Exportar HTML</button>
+        <button id="rossmo-export-pdf" class="primary-button" disabled>Exportar PDF</button>
+      </div>
+    </section>
+  </main>
+</div>
+{% endblock %}
+{% block scripts %}
+{% include "basemaps.html" %}
+{% include "heat_palettes.html" %}
+{% include "cartography.html" %}
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet.heat/dist/leaflet-heat.js"></script>
+<script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+<script src="{{ url_for('static', path='rossmo.js') }}?v=20261030"></script>
+{% endblock %}

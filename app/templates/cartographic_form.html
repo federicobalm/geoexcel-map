@@ -1,0 +1,12 @@
+<fieldset class="cartographic-form">
+  <legend>Ficha del mapa · obligatoria</legend>
+  <div class="config-grid">
+    <div><label for="{{ prefix }}-event">Titulo</label><input id="{{ prefix }}-event" type="text" minlength="2" maxlength="100" required placeholder="Ej.: robos ficticios"></div>
+    <div><label for="{{ prefix }}-unit">Unidad geográfica</label><input id="{{ prefix }}-unit" type="text" minlength="2" maxlength="100" required placeholder="Ej.: Ciudad de Buenos Aires"></div>
+    <div><label for="{{ prefix }}-start">Desde</label><input id="{{ prefix }}-start" type="date" required></div>
+    <div><label for="{{ prefix }}-end">Hasta (inclusive)</label><input id="{{ prefix }}-end" type="date" required></div>
+    <div><label for="{{ prefix }}-author">Analista o entidad</label><input id="{{ prefix }}-author" type="text" minlength="2" maxlength="120" required></div>
+  </div>
+  <label class="confirmation"><input id="{{ prefix }}-synthetic" type="checkbox" required> Confirmo que el archivo contiene únicamente datos ficticios.</label>
+  <label class="confirmation"><input id="{{ prefix }}-period-confirmed" type="checkbox" required> Confirmo que los eventos corresponden al período indicado. El sistema no verifica fechas individuales.</label>
+</fieldset>

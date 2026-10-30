@@ -5,6 +5,7 @@ import json
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, File, Request, UploadFile
+from fastapi.exceptions import RequestValidationError
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
@@ -30,6 +31,7 @@ from app.services.exporters import (
     serialize_for_template,
 )
 from app.services.profiling import build_geographic_profile
+from app.services.cartography import build_cartography, gaussian_density
 from app.services.sessions import session_store
 
 
@@ -51,9 +53,39 @@ async def app_error_handler(_: Request, exc: AppError) -> JSONResponse:
     return JSONResponse(status_code=exc.status_code, content={"detail": exc.detail})
 
 
+@app.exception_handler(RequestValidationError)
+async def validation_error_handler(_: Request, exc: RequestValidationError) -> JSONResponse:
+    labels = {
+        "cartographic_metadata": "Ficha del mapa", "event": "Titulo",
+        "geographic_unit": "Unidad geográfica", "period_start": "Desde",
+        "period_end": "Hasta", "author": "Analista o entidad",
+        "synthetic": "Confirmación de datos ficticios", "period_confirmed": "Confirmación del período",
+        "buffer_radius_m": "Buffer Rossmo (m)", "known_anchor_lat": "Latitud del anclaje",
+        "known_anchor_lon": "Longitud del anclaje",
+    }
+    messages = []
+    for error in exc.errors():
+        field = str(error["loc"][-1]) if error["loc"] else "body"
+        label = labels.get(field, "Configuración" if field == "body" else field)
+        message = error["msg"].removeprefix("Value error, ")
+        if error["type"] == "missing":
+            message = "Completa este campo."
+        elif error["type"] == "string_too_short":
+            message = f"Escribe al menos {error['ctx']['min_length']} caracteres."
+        elif field in {"synthetic", "period_confirmed"}:
+            message = "Marca esta confirmación para continuar."
+        messages.append(f"{label}: {message}")
+    return JSONResponse(status_code=422, content={"detail": " · ".join(messages)})
+
+
 @app.get("/", response_class=HTMLResponse)
 async def home(request: Request) -> HTMLResponse:
     return templates.TemplateResponse(request, "index.html", {"app_name": settings.app_name})
+
+
+@app.get("/rossmo", response_class=HTMLResponse)
+async def rossmo_page(request: Request) -> HTMLResponse:
+    return templates.TemplateResponse(request, "rossmo.html", {"app_name": settings.app_name})
 
 
 @app.get("/health/live")
@@ -115,6 +147,8 @@ async def upload_file(file: UploadFile = File(...)) -> UploadSummary:
 def _build_map_preview_payload(map_request: MapRequest) -> MapPreviewResponse:
     df = session_store.load_dataframe(map_request.session_id)
     cleaned_df, summary_data = validate_coordinates(df, map_request.lat_column, map_request.lon_column)
+    if cleaned_df.empty:
+        raise AppError("No hay coordenadas validas para generar un mapa. Revisa las columnas y el archivo.")
     points, popup_fields = build_points_payload(
         cleaned_df,
         map_request.lat_column,
@@ -126,21 +160,34 @@ def _build_map_preview_payload(map_request: MapRequest) -> MapPreviewResponse:
     category_legend: list[dict[str, str]] = []
     if map_request.category_column:
         categories = sorted({point["category"] for point in points})
-        palette = ["#e63946", "#457b9d", "#f4a261", "#2a9d8f", "#6d597a", "#ffb703", "#8ecae6", "#bc4749"]
+        palette = ["#526d82", "#698879", "#93805f", "#796c8f", "#647d85", "#a08183", "#72815b", "#876a57"]
         category_legend = [{"category": category, "color": palette[index % len(palette)]} for index, category in enumerate(categories)]
 
     profile = None
     if map_request.map_type == "profile":
         profile = build_geographic_profile(cleaned_df, map_request)
 
+    summary = MapSummary(**summary_data)
+    density = gaussian_density(cleaned_df, map_request.bandwidth_m) if map_request.map_type == "heatmap" else None
+    cartography = build_cartography(map_request, summary, cleaned_df, density)
+    if density is not None:
+        # An exported density surface must not carry individual event coordinates/attributes.
+        points, popup_fields, category_legend = [], [], []
+    elif map_request.map_type == "proportional":
+        points = [{'lat': float(lat), 'lon': float(lon), 'count': int(count), 'label': '', 'category': '', 'popup': {}}
+                  for (lat, lon), count in cleaned_df.groupby(['lat', 'lon']).size().items()]
+        popup_fields, category_legend = [], []
+
     return MapPreviewResponse(
         session_id=map_request.session_id,
         map_config=map_request,
-        summary=MapSummary(**summary_data),
+        summary=summary,
         points=points,
         category_legend=category_legend,
         popup_fields=popup_fields,
         profile=profile,
+        cartography=cartography,
+        density=density,
     )
 
 
@@ -155,6 +202,7 @@ async def export_html(map_request: MapRequest) -> HTMLResponse:
     metadata = session_store.load_metadata(map_request.session_id)
     context = {
         "title": metadata["filename"],
+        "title_json": json.dumps(metadata["filename"], ensure_ascii=False),
         "map_payload_json": serialize_for_template(preview_payload.model_dump()),
         "summary_json": json.dumps(preview_payload.summary.model_dump(), ensure_ascii=False),
     }
@@ -168,9 +216,10 @@ async def export_pdf(map_request: MapRequest):
     metadata = session_store.load_metadata(map_request.session_id)
     context = {
         "title": metadata["filename"],
+        "title_json": json.dumps(metadata["filename"], ensure_ascii=False),
         "map_payload_json": serialize_for_template(preview_payload.model_dump()),
         "summary_json": json.dumps(preview_payload.summary.model_dump(), ensure_ascii=False),
     }
-    pdf_path = await build_pdf_file(templates.get_template("export_pdf.html"), context)
+    pdf_path = await asyncio.to_thread(build_pdf_file, templates.get_template("export_pdf.html"), context)
     filename = f"{sanitize_filename(metadata['filename'])}_{map_request.map_type}.pdf"
     return build_pdf_response(pdf_path, filename)

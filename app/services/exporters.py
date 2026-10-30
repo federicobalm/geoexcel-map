@@ -5,15 +5,15 @@ from pathlib import Path
 from tempfile import NamedTemporaryFile
 
 from fastapi.responses import FileResponse, HTMLResponse
-from playwright.async_api import Error as PlaywrightError
-from playwright.async_api import async_playwright
+from playwright.sync_api import Error as PlaywrightError
+from playwright.sync_api import sync_playwright
 from starlette.background import BackgroundTask
 
 from app.config import settings
 from app.errors import ExportError
 
 
-async def build_pdf_file(template, context: dict) -> Path:
+def build_pdf_file(template, context: dict) -> Path:
     html = template.render(**context)
     with NamedTemporaryFile("w", suffix=".html", delete=False, encoding="utf-8", dir=settings.export_dir) as html_file:
         html_file.write(html)
@@ -21,13 +21,17 @@ async def build_pdf_file(template, context: dict) -> Path:
 
     pdf_path = html_path.with_suffix(".pdf")
     try:
-        async with async_playwright() as playwright:
-            browser = await playwright.chromium.launch()
+        with sync_playwright() as playwright:
+            browser = playwright.chromium.launch()
             try:
-                page = await browser.new_page(viewport={"width": 1440, "height": 1080})
-                await page.goto(html_path.as_uri(), wait_until="networkidle")
-                await page.wait_for_function("window.__EXPORT_READY === true")
-                await page.pdf(
+                page = browser.new_page(viewport={"width": 1440, "height": 1080})
+                page.goto(html_path.as_uri(), wait_until="networkidle")
+                page.wait_for_function("window.__EXPORT_READY === true")
+                page.wait_for_function("""() => {
+                    const tiles = [...document.querySelectorAll('#map img.leaflet-tile')];
+                    return tiles.length > 0 && tiles.every(tile => tile.complete && tile.naturalWidth > 0);
+                }""", timeout=30000)
+                page.pdf(
                     path=str(pdf_path),
                     format="A4",
                     landscape=True,
@@ -35,11 +39,10 @@ async def build_pdf_file(template, context: dict) -> Path:
                     margin={"top": "12mm", "right": "10mm", "bottom": "12mm", "left": "10mm"},
                 )
             finally:
-                await browser.close()
-            await browser.close()
-    except PlaywrightError as exc:
+                browser.close()
+    except (PlaywrightError, NotImplementedError, OSError) as exc:
         raise ExportError(
-            "No se pudo generar el PDF. Verifica que Chromium este instalado con `playwright install chromium` en el servidor.",
+            "No se pudo completar el PDF. Verifica la conexion al proveedor del mapa o prueba otro fondo. Si Chromium no esta instalado, ejecuta `playwright install chromium` y reinicia la aplicacion.",
             status_code=500,
         ) from exc
     finally:
@@ -61,7 +64,7 @@ def sanitize_filename(raw_name: str) -> str:
 
 
 def serialize_for_template(payload: dict) -> str:
-    return json.dumps(payload, ensure_ascii=False)
+    return json.dumps(payload, ensure_ascii=False).replace("<", "\\u003c").replace(">", "\\u003e").replace("&", "\\u0026")
 
 
 def remove_file(path: Path) -> None:

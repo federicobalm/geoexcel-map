@@ -1,0 +1,116 @@
+<style>
+.cartographic-caption { margin: 14px 0; color: #223439; background: #fff; padding: 12px 16px; border: 1px solid #dbe3e6; overflow-wrap: anywhere; }
+.cartographic-caption h3 { margin: 0 0 6px; font-size: 16px; }
+.cartographic-caption p { margin: 4px 0; font-size: 12px; color: #40545d; }
+.cartographic-legend { margin: 12px 0; padding: 12px 16px; background: white; color: #223439; border: 1px solid #dbe3e6; font: 12px/1.5 system-ui, sans-serif; break-inside: avoid; }
+.cartographic-legend p { color: #40545d; margin: 4px 0; }
+.cartographic-ramp { height: 12px; max-width: 400px; border: 1px solid #647881; margin: 8px 0; }
+.map-north { padding: 6px 10px; background: white; color: #223439; text-align: center; font: bold 13px system-ui; border: 1px solid #899da3; border-radius: 4px; }
+.map-north svg { display: block; width: 18px; height: 28px; margin: auto; }
+.marker-cluster { background: #dce6ec; border-radius: 50%; }
+.marker-cluster div { background: #b6cbd8; color: #233c4b; border-radius: 50%; width: 30px; height: 30px; margin: 5px; text-align: center; font: 12px/30px system-ui; }
+.marker-cluster-medium { background: #c7d7e2; }
+.marker-cluster-medium div { background: #8eacbf; }
+.marker-cluster-large { background: #a4becd; }
+.marker-cluster-large div { background: #526d82; color: white; }
+</style>
+<script>
+function apiErrorMessage(error, fallback = 'No se pudo completar la operación.') {
+  const detail = error?.detail ?? error;
+  if (typeof detail === 'string') return detail || fallback;
+  if (Array.isArray(detail)) return detail.map(item => {
+    const field = Array.isArray(item?.loc) ? item.loc.filter(part => part !== 'body').join(' · ') : '';
+    return `${field ? field + ': ' : ''}${apiErrorMessage(item, fallback)}`;
+  }).join(' · ') || fallback;
+  if (detail && typeof detail === 'object') return apiErrorMessage(detail.msg ?? detail.message, fallback);
+  return fallback;
+}
+function readCartographicMetadata(prefix) {
+  const value = suffix => document.getElementById(`${prefix}-${suffix}`).value.trim();
+  return { event: value('event'), geographic_unit: value('unit'), period_start: value('start'), period_end: value('end'),
+    author: value('author'),
+    synthetic: document.getElementById(`${prefix}-synthetic`).checked,
+    period_confirmed: document.getElementById(`${prefix}-period-confirmed`).checked };
+}
+function addCartography(map, payload) {
+  const container = map.getContainer();
+  const target = container.closest('.result-grid') || container.closest('.map-frame') || container;
+  document.querySelectorAll(`[data-cartography="${container.id}"]`).forEach(item => item.remove());
+  const meta = payload.cartography;
+  const caption = document.createElement('section');
+  caption.className = 'cartographic-caption'; caption.dataset.cartography = container.id;
+  const heading = document.createElement('h3'); heading.textContent = meta.title; caption.appendChild(heading);
+  const paragraph = (parent, text) => { const p = document.createElement('p'); p.textContent = text; parent.appendChild(p); };
+  paragraph(caption, `Autoría: ${meta.author} · Elaboración: ${meta.created_at} · Datos ficticios`);
+  paragraph(caption, `Geoposicionamiento válido: ${meta.geocoding_percentage} %. ${meta.geocoding_description}`);
+  target.before(caption);
+  const legend = document.createElement('section'); legend.className = 'cartographic-legend'; legend.dataset.cartography = container.id;
+  const title = document.createElement('strong'); title.textContent = 'Leyenda y fuentes'; legend.appendChild(title);
+  paragraph(legend, meta.method);
+  paragraph(legend, `Datos y coordenadas: archivo cargado por el analista. Fondo geográfico: ${meta.basemap} (atribución en el mapa).`);
+  if (payload.density) {
+    const gradient = heatGradient(payload.map_config.heat_palette, payload.map_config.heat_levels);
+    const stops = Object.entries(gradient).sort((a,b) => Number(a[0])-Number(b[0]));
+    const ramp = document.createElement('div'); ramp.className = 'cartographic-ramp'; ramp.style.background = `linear-gradient(to right, ${stops.map(([value, color]) => `${color} ${100*value}%`).join(',')})`; legend.appendChild(ramp);
+    paragraph(legend, `Menor → mayor densidad. Máximo: ${payload.density.maximum.toFixed(2)} eventos/km². Ancho de banda: ${payload.density.bandwidth_m} m. EPSG:${payload.density.epsg}.`);
+    paragraph(legend, `Nodos manuales: ${payload.map_config.heat_levels.map(level => `${level}% = ${(payload.density.maximum*level/100).toFixed(2)} eventos/km²`).join('; ')}. Escala relativa al máximo de este mapa.`);
+    paragraph(legend, payload.density.method);
+  } else if (payload.map_config.map_type === 'hotmap') {
+    const ramp = document.createElement('div'); ramp.className = 'cartographic-ramp';
+    const stops = Object.entries(heatGradient(payload.map_config.heat_palette, payload.map_config.heat_levels)).sort((a,b) => Number(a[0])-Number(b[0]));
+    ramp.style.background = `linear-gradient(to right, ${stops.map(([value, color]) => `${color} ${100*value}%`).join(',')})`; legend.appendChild(ramp);
+    paragraph(legend, 'Menor → mayor concentración relativa. El calor depende del zoom y del radio en pantalla; no representa tasas ni eventos/km².');
+  } else if (payload.map_config.map_type === 'choropleth') {
+    const cells = buildGridCells(payload.points);
+    const maximum = Math.max(1, ...cells.map(cell => cell.count));
+    paragraph(legend, `Grilla de 7 × 7 sobre la extensión de los datos. Máximo: ${maximum} eventos por celda. Las celdas vacías no se colorean. No representa límites administrativos ni tasas poblacionales.`);
+    [[0, '#38bdf8'], [0.2, '#facc15'], [0.4, '#f97316'], [0.6, '#dc2626'], [0.8, '#7f1d1d']].forEach(([ratio, color], index) => {
+      const row = document.createElement('p'); const swatch = document.createElement('span');
+      swatch.style.cssText = `display:inline-block;width:12px;height:12px;margin-right:6px;background:${color}`;
+      const lower = Math.max(1, Math.ceil(ratio * maximum));
+      const upper = index === 4 ? maximum : Math.ceil((index + 1) * 0.2 * maximum) - 1;
+      if (upper >= lower) { row.append(swatch, document.createTextNode(`${lower}–${upper} eventos`)); legend.appendChild(row); }
+    });
+  } else if (payload.map_config.map_type === 'proportional') {
+    paragraph(legend, 'Radio = 6 × √frecuencia en píxeles. El área, no el radio, representa la cantidad. Cada ubicación agrupa coordenadas exactamente coincidentes.');
+  } else if (payload.map_config.map_type === 'profile') {
+    paragraph(legend, 'Puntos: hechos ficticios. Círculo destacado: anclaje estimado. Superficie: prioridad relativa CGT, no predicción de un próximo hecho.');
+    const ramp = document.createElement('div'); ramp.className = 'cartographic-ramp'; ramp.style.background = 'linear-gradient(to right, #eff3ff, #bdd7e7, #6baed6, #3182bd, #08519c)'; legend.appendChild(ramp);
+    paragraph(legend, 'Azul claro → oscuro: menor → mayor prioridad relativa. Visualización suavizada del subconjunto de celdas seleccionado por el motor; no clases de tasas ni probabilidades.');
+  } else {
+    paragraph(legend, 'Marcadores: ubicaciones de eventos ficticios. Tamaño uniforme, excepto círculos de agrupación que indican la cantidad contenida.');
+  }
+  (payload.category_legend || []).forEach(item => {
+    const row = document.createElement('p'); const swatch = document.createElement('span');
+    swatch.style.cssText = `display:inline-block;width:10px;height:10px;margin-right:6px;background:${item.color}`;
+    row.append(swatch, document.createTextNode(item.category)); legend.appendChild(row);
+  });
+  meta.warnings.forEach(item => paragraph(legend, item)); paragraph(legend, meta.limitation);
+  target.after(legend);
+  if (!map._cartographyControls) {
+    L.control.scale({ imperial: false, position: 'bottomleft', maxWidth: 150 }).addTo(map);
+    const north = L.control({ position: 'topright' });
+    north.onAdd = () => { const node = L.DomUtil.create('div', 'map-north'); node.setAttribute('aria-label', 'Norte hacia arriba'); node.innerHTML = 'N<svg viewBox="0 0 20 30" aria-hidden="true"><path d="M10 2L18 26L10 21L2 26Z" fill="#223439"/></svg>'; return node; };
+    north.addTo(map); map._cartographyControls = true;
+  }
+}
+function renderDensity(density, config) {
+  const canvas = document.createElement('canvas'); canvas.width = density.cols; canvas.height = density.rows;
+  const ctx = canvas.getContext('2d'); const image = ctx.createImageData(canvas.width, canvas.height);
+  const stops = Object.entries(heatGradient(config.heat_palette, config.heat_levels)).map(([at,color]) => [Number(at), [1,3,5].map(start => parseInt(color.slice(start,start+2),16))]).sort((a,b)=>a[0]-b[0]);
+  density.values.forEach((value, index) => {
+    const ratio = density.maximum ? value/density.maximum : 0;
+    let hi = stops.findIndex(stop => stop[0] >= ratio); if (hi < 0) hi = stops.length-1;
+    const lo = Math.max(0, hi-1); const f = lo === hi ? 0 : (ratio-stops[lo][0])/(stops[hi][0]-stops[lo][0]);
+    for(let channel=0;channel<3;channel++) image.data[index*4+channel] = Math.round(stops[lo][1][channel]*(1-f)+stops[hi][1][channel]*f);
+    image.data[index*4+3] = Math.round(185*Math.min(1,ratio/0.04));
+  });
+  ctx.putImageData(image,0,0);
+  return L.imageOverlay(canvas.toDataURL('image/png'), density.bounds, { interactive:false });
+}
+function renderProportional(points) {
+  const layer = L.layerGroup();
+  points.forEach(point => layer.addLayer(L.circleMarker([point.lat,point.lon], { radius: 6*Math.sqrt(point.count), color:'#315f74', weight:1, fillColor:'#719dad', fillOpacity:.55 }).bindTooltip(`${point.count} eventos ficticios`)));
+  return layer;
+}
+</script>

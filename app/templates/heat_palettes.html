@@ -1,0 +1,14 @@
+<script>
+  const HEAT_PALETTES = {
+    classic: { label: "Calor clásico", gradient: { 0.1: "#0000ff", 0.38: "#00ffff", 0.58: "#00ff00", 0.78: "#ffff00", 1.0: "#ff0000" } },
+    blues: { label: "Azules secuenciales", gradient: { 0.1: "#eff3ff", 0.38: "#bdd7e7", 0.58: "#6baed6", 0.78: "#3182bd", 1.0: "#08519c" } },
+    teal: { label: "Verdes azulados", gradient: { 0.1: "#edf8fb", 0.38: "#b2e2e2", 0.58: "#66c2a4", 0.78: "#2ca25f", 1.0: "#006d2c" } },
+    viridis: { label: "Violeta a amarillo", gradient: { 0.1: "#440154", 0.38: "#3b528b", 0.58: "#21918c", 0.78: "#5ec962", 1.0: "#fde725" } },
+    grays: { label: "Grises secuenciales", gradient: { 0.1: "#f7f7f7", 0.38: "#cccccc", 0.58: "#969696", 0.78: "#636363", 1.0: "#252525" } }
+  };
+  function heatGradient(paletteName, levels = [10, 38, 58, 78, 100]) {
+    const palette = HEAT_PALETTES[paletteName] || HEAT_PALETTES.blues;
+    const colors = Object.entries(palette.gradient).sort((a, b) => Number(a[0]) - Number(b[0])).map(entry => entry[1]);
+    return Object.fromEntries(colors.map((color, index) => [levels[index] / 100, color]));
+  }
+</script>

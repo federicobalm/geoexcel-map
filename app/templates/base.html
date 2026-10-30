@@ -4,9 +4,6 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{% block title %}GeoExcel Map v3{% endblock %}</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
   <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css">
   <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css">
@@ -14,6 +11,20 @@
   {% block head %}{% endblock %}
 </head>
 <body>
+  <!-- THESIS: A guided classroom workbench, one decision at a time.
+  OWN-WORLD: Paper-white work areas, slate text, teal actions, compact system typography.
+  STORY: Load a sheet or example, choose a representation, explore and download.
+  FIRST VIEWPORT: Compact navigation, three-step progress, one centered upload workspace.
+  FORM: Guided practical worksheet; brief-led Operate; seed f2e81c64.
+  FINISH: unreviewed and undocumented is unfinished; this build ends with the finish review, the verdict, DESIGN.md, and every shipping raster carrying its provenance -->
+  <a class="skip-link" href="#main-content">Ir al contenido</a>
+  <header class="app-header">
+    <a class="brand" href="/" aria-label="GeoExcel, inicio"><svg viewBox="0 0 32 32" width="30" height="30" aria-hidden="true"><path d="M4 8l8-3 8 3 8-3v20l-8 3-8-3-8 3z" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 5v20M20 8v20" fill="none" stroke="currentColor" stroke-width="2"/></svg>GeoExcel<span>Map</span></a>
+    <nav aria-label="Secciones">
+      <a href="/" {% if request.url.path == '/' %}aria-current="page"{% endif %}>Crear mapas</a>
+      <a href="/rossmo" {% if request.url.path == '/rossmo' %}aria-current="page"{% endif %}>Análisis Rossmo</a>
+    </nav>
+  </header>
   {% block body %}{% endblock %}
   {% block scripts %}{% endblock %}
 </body>

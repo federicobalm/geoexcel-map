@@ -1,199 +1,92 @@
 {% extends "base.html" %}
-{% block title %}{{ app_name }}{% endblock %}
+{% block title %}Crear un mapa | {{ app_name }}{% endblock %}
 {% block body %}
-<div class="page-shell">
-  <header class="hero-band">
-    <div>
-      <p class="eyebrow">GeoExcel Map v3</p>
-      <h1>Mapas listos para analizar, no para sufrir la instalacion.</h1>
-      <p class="hero-copy">Subi una planilla, valida las coordenadas y compara distintas representaciones del mismo caso en minutos.</p>
-    </div>
-    <div class="hero-card">
-      <span>Objetivo docente</span>
-      <strong>Transformar datos tabulares en mapas claros para analisis territorial, criminalistico y forense.</strong>
-      <div class="hero-links">
-        <a href="/sample_data/plantilla_geoexcel_map.csv" download class="ghost-link">Descargar plantilla base</a>
-        <a href="/sample_data/serie_rossmo_demo.csv" download class="ghost-link">Descargar serie Rossmo demo</a>
-      </div>
-    </div>
-  </header>
+<main class="page-shell" id="main-content">
+  <div class="page-heading"><div><h1>De tu planilla al mapa.</h1><p>Cargá tus datos, elegí cómo verlos y explorá.</p></div><a href="/sample_data/plantilla_geoexcel_map.csv" download class="ghost-link">Descargar ejemplo CSV</a></div>
+  <nav class="flow-progress" aria-label="Pasos para crear un mapa">
+    <button type="button" data-map-step="1" aria-current="step"><span>1</span>Tus datos</button>
+    <button type="button" data-map-step="2" disabled><span>2</span>Elegí un mapa</button>
+    <button type="button" data-map-step="3" disabled><span>3</span>Explorá y descargá</button>
+  </nav>
+  <div id="upload-feedback" class="inline-feedback" role="status" aria-live="polite" hidden></div>
 
-  <main class="workspace-grid">
-    <section class="panel panel-upload">
-      <div class="panel-header">
-        <p class="panel-step">Paso 1</p>
-        <h2>Cargar archivo</h2>
-        <p>Formatos aceptados: <code>.csv</code> y <code>.xlsx</code>.</p>
-      </div>
-      <form id="upload-form" class="stack-form">
-        <label class="file-dropzone" for="data-file">
-          <input id="data-file" name="file" type="file" accept=".csv,.xlsx" required>
-          <span class="drop-title">Seleccionar archivo</span>
-          <span class="drop-help">Archivos de hasta 15 MB</span>
-        </label>
-        <button type="submit" class="primary-button">Analizar archivo</button>
+  <section id="map-stage-1" class="stage upload-stage" aria-labelledby="upload-heading">
+    <div class="panel-header"><h2 id="upload-heading" tabindex="-1">Empezá con tus datos</h2><p>Una planilla con columnas de latitud y longitud es suficiente.</p></div>
+    <form id="upload-form" class="stack-form">
+      <label class="file-dropzone" for="data-file">
+        <svg viewBox="0 0 48 48" width="48" height="48" aria-hidden="true"><path d="M14 5h14l8 8v30H12V5zM28 5v10h8M18 25h12M18 32h12" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>
+        <span class="drop-title">Elegir una planilla</span><span class="drop-help">CSV o Excel (.xlsx) · Hasta 15 MB</span>
+        <input id="data-file" name="file" type="file" accept=".csv,.xlsx" required>
+        <span id="selected-file" class="selected-file">Ningún archivo seleccionado</span>
+      </label>
+      <button type="submit" class="primary-button">Cargar y continuar</button>
+    </form>
+    <div class="demo-row"><div><strong>¿Es tu primer mapa?</strong><p>Probá con 300 casos ficticios de Buenos Aires.</p></div><button id="load-demo" type="button" class="secondary-button">Usar ejemplo</button></div>
+  </section>
+
+  <section id="map-stage-2" class="stage configure-stage" hidden aria-labelledby="configure-heading">
+    <div class="panel-header"><h2 id="configure-heading" tabindex="-1">¿Cómo querés ver tus datos?</h2><p>Podés cambiar la representación después.</p></div>
+    <div id="validation-empty" hidden></div>
+    <div id="validation-content" hidden>
+      <div class="dataset-line"><strong id="summary-filename">—</strong><span><b id="summary-rows">0</b> filas · <b id="summary-columns">0</b> columnas</span><button type="button" class="text-button" data-go-step="1">Cambiar archivo</button></div>
+      <form id="map-config-form">
+        {% set prefix = 'map' %}{% include 'cartographic_form.html' %}
+        <fieldset class="map-picker"><legend>Tipo de mapa</legend>
+          <label class="map-choice"><input type="radio" name="map_choice" value="points" checked><svg viewBox="0 0 120 56" aria-hidden="true"><g fill="currentColor"><circle cx="25" cy="19" r="5"/><circle cx="65" cy="12" r="5"/><circle cx="49" cy="40" r="5"/><circle cx="95" cy="33" r="5"/></g></svg><strong>Puntos</strong><span>Cada caso en su lugar</span></label>
+          <label class="map-choice"><input type="radio" name="map_choice" value="heatmap"><svg viewBox="0 0 120 56" aria-hidden="true"><defs><radialGradient id="heat-sample"><stop stop-color="#08519c"/><stop offset=".4" stop-color="#6baed6"/><stop offset=".7" stop-color="#bdd7e7"/><stop offset="1" stop-color="#eff3ff" stop-opacity="0"/></radialGradient></defs><ellipse cx="49" cy="30" rx="36" ry="26" fill="url(#heat-sample)"/><ellipse cx="82" cy="22" rx="23" ry="21" fill="url(#heat-sample)"/></svg><strong>Densidad KDE</strong><span>Eventos por km²</span></label>
+          <label class="map-choice"><input type="radio" name="map_choice" value="hotmap"><svg viewBox="0 0 120 56" aria-hidden="true"><defs><radialGradient id="hot-sample"><stop stop-color="#ff0000"/><stop offset=".35" stop-color="#ffff00"/><stop offset=".6" stop-color="#00ff00"/><stop offset=".8" stop-color="#00ffff"/><stop offset="1" stop-color="#0000ff" stop-opacity="0"/></radialGradient></defs><ellipse cx="49" cy="30" rx="36" ry="26" fill="url(#hot-sample)"/><ellipse cx="82" cy="22" rx="23" ry="21" fill="url(#hot-sample)"/></svg><strong>Mapa de calor</strong><span>Hot map · colores clásicos</span></label>
+          <label class="map-choice"><input type="radio" name="map_choice" value="choropleth"><svg viewBox="0 0 120 56" aria-hidden="true"><path d="M27 5h20v20H27zM51 5h20v20H51zM75 29h20v20H75z" fill="#facc15"/><path d="M51 29h20v20H51zM75 5h20v20H75z" fill="#dc2626"/><path d="M27 29h20v20H27z" fill="#f97316"/></svg><strong>Coropleta por grilla</strong><span>Cantidad de eventos por celda</span></label>
+          <label class="map-choice"><input type="radio" name="map_choice" value="proportional"><svg viewBox="0 0 120 56" aria-hidden="true"><g fill="#719dad" stroke="#315f74"><circle cx="22" cy="30" r="5"/><circle cx="52" cy="30" r="10"/><circle cx="91" cy="30" r="18"/></g></svg><strong>Proporcionales</strong><span>Frecuencia por ubicación</span></label>
+          <label class="map-choice"><input type="radio" name="map_choice" value="cluster"><svg viewBox="0 0 120 56" aria-hidden="true"><g fill="#d9eee8" stroke="currentColor"><circle cx="37" cy="24" r="17"/><circle cx="84" cy="35" r="12"/></g><g fill="currentColor" text-anchor="middle" font-size="12"><text x="37" y="28">12</text><text x="84" y="39">5</text></g></svg><strong>Agrupados</strong><span>Menos marcadores</span></label>
+          <label class="map-choice"><input type="radio" name="map_choice" value="category"><svg viewBox="0 0 120 56" aria-hidden="true"><circle cx="28" cy="18" r="6" fill="#167c70"/><circle cx="62" cy="12" r="6" fill="#ba651b"/><circle cx="49" cy="41" r="6" fill="#4f70b4"/><circle cx="91" cy="35" r="6" fill="#167c70"/></svg><strong>Categorías</strong><span>Un color por grupo</span></label>
+        </fieldset>
+        <select id="map-type" name="map_type" hidden aria-label="Tipo de mapa"><option value="points">Puntos</option><option value="heatmap">Densidad KDE</option><option value="hotmap">Mapa de calor</option><option value="choropleth">Coropleta por grilla</option><option value="proportional">Proporcionales</option><option value="cluster">Agrupados</option><option value="category">Categorías</option></select>
+        <div class="map-type-guide"><strong id="map-type-title" hidden></strong><p id="map-type-description"></p></div>
+        <div class="config-grid">
+          <div id="category-wrap" hidden><label for="category-column">¿Qué columna define los colores?</label><select id="category-column" name="category_column"></select></div>
+          <div class="range-block" id="bandwidth-wrap" hidden><label for="bandwidth-m">Ancho de banda KDE (metros)</label><input id="bandwidth-m" name="bandwidth_m" type="number" min="100" max="5000" step="100" value="500" required></div>
+          <div class="range-block" id="heat-radius-wrap" hidden><label for="heat-radius">Radio del calor</label><input id="heat-radius" name="heat_radius" type="range" min="5" max="60" value="25"><output id="heat-radius-value" for="heat-radius">25</output></div>
+          <div id="heat-palette-wrap" hidden><label for="heat-palette">Colores del mapa de calor</label><select id="heat-palette" name="heat_palette"><option value="classic">Calor clásico · azul a rojo</option><option value="blues">Azules secuenciales</option><option value="teal">Verdes azulados</option><option value="viridis">Viridis</option><option value="grays">Grises secuenciales</option></select><div id="heat-palette-preview" class="heat-palette-preview" aria-hidden="true"></div><div class="heat-palette-scale"><span>Menor concentración</span><span>Mayor concentración</span></div></div>
+        </div>
+        <details id="heat-levels-wrap" class="disclosure" hidden>
+          <summary>Ajustar niveles de color</summary>
+          <p class="heat-levels-help" id="heat-levels-help">Intensidad relativa, no cantidad de casos. Cada color comienza en el porcentaje indicado; el mapa interpola entre colores.</p>
+          <div class="heat-levels" aria-describedby="heat-levels-help">
+            <div><label for="heat-level-0"><span class="level-swatch" aria-hidden="true"></span>Color 1 (%)</label><input id="heat-level-0" type="number" min="1" max="96" step="1" value="10" required></div>
+            <div><label for="heat-level-1"><span class="level-swatch" aria-hidden="true"></span>Color 2 (%)</label><input id="heat-level-1" type="number" min="2" max="97" step="1" value="38" required></div>
+            <div><label for="heat-level-2"><span class="level-swatch" aria-hidden="true"></span>Color 3 (%)</label><input id="heat-level-2" type="number" min="3" max="98" step="1" value="58" required></div>
+            <div><label for="heat-level-3"><span class="level-swatch" aria-hidden="true"></span>Color 4 (%)</label><input id="heat-level-3" type="number" min="4" max="99" step="1" value="78" required></div>
+            <div><label for="heat-level-4"><span class="level-swatch" aria-hidden="true"></span>Máximo (%)</label><input id="heat-level-4" type="number" value="100" readonly></div>
+          </div>
+          <p id="heat-levels-error" class="heat-levels-error" role="status" hidden>Usá porcentajes crecientes, sin repetir valores.</p>
+          <button type="button" id="reset-heat-levels" class="text-button">Restablecer niveles</button>
+        </details>
+        <details class="disclosure" id="coordinate-settings"><summary>Revisar coordenadas y apariencia</summary><div id="validation-notes" class="note-list"></div><div class="config-grid">
+          <div><label for="lat-column">Columna de latitud</label><select id="lat-column" name="lat_column" required></select></div>
+          <div><label for="lon-column">Columna de longitud</label><select id="lon-column" name="lon_column" required></select></div>
+          <div><label for="tile-layer">Mapa de fondo</label><select id="tile-layer" name="tile_layer"><option>OpenStreetMap</option><option value="Esri Light Gray">Claro · Esri</option><option value="Esri Dark Gray">Oscuro · Esri</option><option value="Esri World Imagery">Satélite · Esri</option></select></div>
+          <div><label for="label-column">Etiqueta de cada punto</label><select id="label-column" name="label_column"></select></div>
+        </div></details>
+        <details class="disclosure"><summary>Ver la planilla</summary><div class="table-shell"><table id="preview-table"></table></div></details>
+        <div class="stage-actions"><button type="button" class="secondary-button" data-go-step="1">Volver</button><button type="submit" class="primary-button">Crear mi mapa</button></div>
       </form>
-      <div id="upload-feedback" class="inline-feedback" hidden></div>
-    </section>
+    </div>
+  </section>
 
-    <section class="panel panel-validation">
-      <div class="panel-header">
-        <p class="panel-step">Paso 2</p>
-        <h2>Validacion guiada</h2>
-        <p>Confirma las columnas y revisa los problemas detectados.</p>
-      </div>
-      <div id="validation-empty" class="empty-state">
-        <strong>Sin archivo cargado</strong>
-        <p>La vista previa y las sugerencias apareceran aca.</p>
-      </div>
-      <div id="validation-content" hidden>
-        <div class="summary-strip">
-          <div><span>Archivo</span><strong id="summary-filename">-</strong></div>
-          <div><span>Filas</span><strong id="summary-rows">0</strong></div>
-          <div><span>Columnas</span><strong id="summary-columns">0</strong></div>
-        </div>
-        <div id="validation-notes" class="note-list"></div>
-        <form id="map-config-form" class="config-grid">
-          <div>
-            <label for="lat-column">Latitud</label>
-            <select id="lat-column" name="lat_column" required></select>
-          </div>
-          <div>
-            <label for="lon-column">Longitud</label>
-            <select id="lon-column" name="lon_column" required></select>
-          </div>
-          <div>
-            <label for="map-type">Tipo de mapa</label>
-            <select id="map-type" name="map_type">
-              <option value="points">Puntos</option>
-              <option value="heatmap">Mapa de calor</option>
-              <option value="cluster">Puntos agrupados</option>
-              <option value="category">Puntos por categoria</option>
-              <option value="profile">Perfil geografico criminal</option>
-            </select>
-          </div>
-          <div>
-            <label for="tile-layer">Mapa base</label>
-            <select id="tile-layer" name="tile_layer">
-              <option>OpenStreetMap</option>
-              <option>CartoDB Positron</option>
-              <option>CartoDB DarkMatter</option>
-              <option>Esri World Imagery</option>
-            </select>
-          </div>
-          <div>
-            <label for="label-column">Campo de etiqueta</label>
-            <select id="label-column" name="label_column"></select>
-          </div>
-          <div>
-            <label for="category-column">Campo de categoria</label>
-            <select id="category-column" name="category_column"></select>
-          </div>
-          <div class="range-block" id="heat-radius-wrap">
-            <label for="heat-radius">Radio del calor</label>
-            <input id="heat-radius" name="heat_radius" type="range" min="5" max="60" value="25">
-            <strong id="heat-radius-value">25</strong>
-          </div>
-          <div class="profile-grid" id="profile-config-wrap" hidden>
-            <div>
-              <label for="distance-metric">Metrica de distancia</label>
-              <select id="distance-metric" name="distance_metric">
-                <option value="manhattan">Manhattan (urbano)</option>
-                <option value="euclidean">Euclidiana (rural)</option>
-              </select>
-            </div>
-            <div>
-              <label for="buffer-radius-m">Buffer Rossmo (m)</label>
-              <input id="buffer-radius-m" name="buffer_radius_m" type="number" min="50" max="5000" step="50" value="400">
-            </div>
-            <div>
-              <label for="decay-exponent-out">Exponente exterior f</label>
-              <input id="decay-exponent-out" name="decay_exponent_out" type="number" min="0.1" max="6" step="0.1" value="1.2">
-            </div>
-            <div>
-              <label for="decay-exponent-in">Exponente interior g</label>
-              <input id="decay-exponent-in" name="decay_exponent_in" type="number" min="0.1" max="8" step="0.1" value="2.0">
-            </div>
-            <div>
-              <label for="scale-constant">Constante k</label>
-              <input id="scale-constant" name="scale_constant" type="number" min="0.1" max="1000" step="0.1" value="1.0">
-            </div>
-            <div>
-              <label for="known-anchor-lat">Lat anclaje conocido (opcional)</label>
-              <input id="known-anchor-lat" name="known_anchor_lat" type="number" min="-90" max="90" step="0.000001" placeholder="Solo para HS% retrospectivo">
-            </div>
-            <div>
-              <label for="known-anchor-lon">Lon anclaje conocido (opcional)</label>
-              <input id="known-anchor-lon" name="known_anchor_lon" type="number" min="-180" max="180" step="0.000001" placeholder="Solo para HS% retrospectivo">
-            </div>
-            <div class="profile-help">
-              <strong>Motor Rossmo CGT</strong>
-              <p>Usa proyeccion UTM, buffer y decaimiento por distancia para estimar el punto de anclaje mas probable.</p>
-            </div>
-          </div>
-          <div class="config-actions">
-            <button type="submit" class="primary-button">Generar vista del mapa</button>
-          </div>
-        </form>
-
-        <div class="preview-table-wrap">
-          <div class="subhead-row">
-            <h3>Vista previa de datos</h3>
-            <span>Primeras filas del archivo</span>
-          </div>
-          <div class="table-shell">
-            <table id="preview-table"></table>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <section class="panel panel-map panel-wide">
-      <div class="panel-header">
-        <p class="panel-step">Paso 3</p>
-        <h2>Mapa y resultados</h2>
-        <p>Compara la representacion espacial y exporta el resultado.</p>
-      </div>
-      <div class="result-grid">
-        <div class="map-frame">
-          <div id="map"></div>
-          <div id="map-empty" class="map-placeholder">El mapa aparecera aca cuando generes una vista previa.</div>
-        </div>
-        <aside class="result-sidebar">
-          <div class="metric-card">
-            <span>Filas validas</span>
-            <strong id="valid-rows">0</strong>
-          </div>
-          <div class="metric-card metric-card-alt">
-            <span>Filas con problemas</span>
-            <strong id="invalid-rows">0</strong>
-          </div>
-          <div class="issues-card">
-            <h3>Hallazgos del archivo</h3>
-            <ul id="issues-list"></ul>
-          </div>
-          <div class="legend-card" id="legend-card" hidden>
-            <h3>Leyenda</h3>
-            <ul id="legend-list"></ul>
-          </div>
-          <div class="issues-card" id="profile-card" hidden>
-            <h3>Perfil geografico</h3>
-            <div id="profile-metrics" class="profile-metrics"></div>
-            <ul id="profile-notes"></ul>
-          </div>
-          <div class="export-actions">
-            <button id="export-html" class="secondary-button" disabled>Exportar HTML</button>
-            <button id="export-pdf" class="primary-button" disabled>Exportar PDF</button>
-          </div>
-        </aside>
-      </div>
-    </section>
-  </main>
-</div>
+  <section id="map-stage-3" class="stage result-stage" hidden aria-labelledby="result-heading">
+    <div class="result-toolbar"><div><h2 id="result-heading" tabindex="-1">Tu mapa está listo</h2><p id="result-map-type">Mapa de puntos</p></div><div class="toolbar-actions"><button type="button" class="secondary-button" data-go-step="2">Cambiar mapa</button><button id="export-html" class="secondary-button" disabled>Descargar HTML</button><button id="export-pdf" class="primary-button" disabled>Descargar PDF</button></div></div>
+    <div class="map-frame"><div id="map"></div><div id="map-empty" class="map-placeholder">Preparando tu mapa…</div><button id="fit-map" class="map-fit" type="button">Ver todos los puntos</button></div>
+    <div class="result-meta"><span><strong id="valid-rows">0</strong> puntos en el mapa</span><span><strong id="invalid-rows">0</strong> filas excluidas</span><span>Acercá el mapa para explorar</span></div>
+    <div class="result-details"><details class="disclosure"><summary>Revisar datos excluidos</summary><ul id="issues-list"></ul></details><div id="legend-card" class="legend-card" hidden><h3>Referencias</h3><ul id="legend-list"></ul></div></div>
+  </section>
+</main>
 {% endblock %}
 {% block scripts %}
+{% include "basemaps.html" %}
+{% include "heat_palettes.html" %}
+{% include "cartography.html" %}
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://unpkg.com/leaflet.heat/dist/leaflet-heat.js"></script>
 <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
-<script src="{{ url_for('static', path='app.js') }}"></script>
+<script src="{{ url_for('static', path='app.js') }}?v=20261030"></script>
 {% endblock %}
