@@ -3,6 +3,7 @@ const rossmoState = {
   previewPayload: null,
   mapInstance: null,
   activeLayer: null,
+  renderedPayload: null,
   analysisConfirmed: false,
   currentStep: 1,
   maxUnlockedStep: 1,
@@ -268,6 +269,7 @@ function ensureMap() {
     return rossmoState.mapInstance;
   }
   const map = L.map("rossmo-map", { zoomControl: true });
+  trackMapView(map);
   rossmoState.mapInstance = map;
   L.tileLayer(rossmoTileLayers.OpenStreetMap.url, rossmoTileLayers.OpenStreetMap.options).addTo(map);
   map.setView([-34.6037, -58.3816], 11);
@@ -287,6 +289,7 @@ function setBasemap(map, tileLayerName) {
 function renderMap(payload) {
   const map = ensureMap();
   map.invalidateSize();
+  if (rossmoState.renderedPayload === payload) return;
   setBasemap(map, payload.map_config.tile_layer);
   if (rossmoState.activeLayer) {
     map.removeLayer(rossmoState.activeLayer);
@@ -324,13 +327,14 @@ function renderMap(payload) {
   rossmoState.activeLayer = layer;
   rossmoState.activeLayer.addTo(map);
   if (bounds.length) {
-    map.fitBounds(bounds, { padding: [24, 24] });
+    map.fitBounds(bounds, { padding: [24, 24], animate: false });
   }
   addCartography(map, payload);
+  rossmoState.renderedPayload = payload;
 }
 
 function renderPreviewStep() {
-  if (!rossmoState.previewPayload) {
+  if (!rossmoState.previewPayload || rossmoState.currentStep !== 4) {
     return;
   }
   renderMap(rossmoState.previewPayload);
@@ -398,6 +402,7 @@ async function postJson(url, payload) {
 async function downloadExport(url) {
   const response = await postJson(url, {
     ...rossmoState.previewPayload.map_config,
+    map_view: readMapView(rossmoState.mapInstance),
     personal_analysis: byId("rossmo-personal-analysis").value.trim() || null,
   });
   const blob = await response.blob();

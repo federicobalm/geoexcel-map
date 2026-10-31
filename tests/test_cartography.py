@@ -56,6 +56,13 @@ class CartographicRulesTest(unittest.TestCase):
         request = MapRequest(**data)
         self.assertNotIn('variable', request.cartographic_metadata.model_dump())
 
+    def test_export_view_validation_and_legacy_requests(self):
+        self.assertIsNone(MapRequest(**request_data()).map_view)
+        for change in ({'lat': 91}, {'lon': -181}, {'zoom': 20}, {'zoom': float('nan')}, {'lat': 'invalid'}):
+            view = {'lat': -34.6, 'lon': -58.4, 'zoom': 15, **change}
+            with self.subTest(change=change), self.assertRaises(ValidationError):
+                MapRequest(**request_data(map_view=view))
+
     def test_kde_gaussian_magnitude_and_bandwidth(self):
         single = pd.DataFrame({'lat': [-34.60], 'lon': [-58.40]})
         one = gaussian_density(single, 500)

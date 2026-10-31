@@ -267,6 +267,7 @@ function ensureMap() {
     return appState.mapInstance;
   }
   const map = L.map("map", { zoomControl: true });
+  trackMapView(map);
   appState.mapInstance = map;
   L.tileLayer(tileLayers.OpenStreetMap.url, tileLayers.OpenStreetMap.options).addTo(map);
   map.setView([-34.6037, -58.3816], 11);
@@ -372,7 +373,7 @@ function renderMap(payload) {
 
   appState.activeLayer.addTo(map);
   if (bounds.length) {
-    map.fitBounds(bounds, { padding: [24, 24] });
+    map.fitBounds(bounds, { padding: [24, 24], animate: false });
   }
   renderLegend(payload);
   renderIssues(payload.summary);
@@ -395,7 +396,7 @@ async function postJson(url, payload) {
 }
 
 async function downloadExport(url) {
-  const request = appState.mapPayload.map_config;
+  const request = { ...appState.mapPayload.map_config, map_view: readMapView(appState.mapInstance) };
   const response = await postJson(url, request);
   const blob = await response.blob();
   const disposition = response.headers.get("Content-Disposition") || "";

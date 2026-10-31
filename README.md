@@ -50,6 +50,8 @@ El instalador aprovecha Python 3.11–3.13 cuando está disponible mediante `py`
 5. Puede ejecutar perfilado geografico criminal con el algoritmo CGT de Rossmo.
 6. Exporta el resultado como `HTML` o `PDF`.
 
+Las exportaciones conservan el **centro y el nivel de zoom** que estás usando al pulsar Descargar. Acercá y desplazá el mapa antes de exportar para elegir la vista inicial del HTML y la vista del PDF. En Rossmo se conserva la vista elegida en el paso de previsualización.
+
 ## Objetivo
 
 Permitir este flujo con la menor friccion posible:

@@ -229,7 +229,7 @@
       return layer;
     }
 
-    const map = L.map("map", { zoomControl: true });
+    const map = L.map("map", { zoomControl: true, zoomSnap: 0 });
     const tile = tileLayers[config.tile_layer] || tileLayers["OpenStreetMap"];
     L.tileLayer(tile.url, tile.options).addTo(map);
 
@@ -277,7 +277,7 @@
       });
     }
 
-    if (bounds.length) map.fitBounds(bounds, { padding: [22, 22] }); else map.setView([-34.6037, -58.3816], 11);
+    applyExportMapView(map, config, bounds, [22, 22]);
 
     const reportDate = payload.cartography.created_at;
     const anchor = profile ? profile.anchor_estimate : null;

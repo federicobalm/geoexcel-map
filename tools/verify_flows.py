@@ -3,9 +3,11 @@
     python tools/verify_flows.py --url http://127.0.0.1:8765
 """
 import argparse
+import json
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
+from jinja2 import Environment, FileSystemLoader, select_autoescape
 from playwright.sync_api import expect, sync_playwright
 
 
@@ -21,7 +23,15 @@ def fill_metadata(page, prefix):
         assert page.locator(f'#{prefix}-{removed}').count() == 0
 
 
+def assert_map_view(page, expected):
+    actual = page.evaluate('({lat: map.getCenter().lat, lon: map.getCenter().lng, zoom: map.getZoom()})')
+    for key in ('lat', 'lon', 'zoom'):
+        assert abs(actual[key] - expected[key]) < 1e-7, (key, actual, expected)
+
+
 def verify_exports(context, page, prefix, directory, kind, pdf=False):
+    state = 'rossmoState' if prefix else 'appState'
+    expected_view = page.evaluate(f'readMapView({state}.mapInstance)')
     with page.expect_download(timeout=90000) as download:
         page.locator(f'#{prefix}export-html').click()
     html = Path(directory) / f'{kind}.html'
@@ -40,6 +50,9 @@ def verify_exports(context, page, prefix, directory, kind, pdf=False):
     assert not osm_requests, 'Local exports must not request OpenStreetMap tiles'
     assert exported.evaluate('window.GEOEXCEL_EXPORT_PAYLOAD.map_config.tile_layer') == 'Esri Light Gray'
     expect(exported.locator('.cartographic-legend')).to_contain_text('Esri Light Gray sustituye a OpenStreetMap')
+    payload = exported.evaluate('window.GEOEXCEL_EXPORT_PAYLOAD')
+    assert payload['map_config']['map_view'] == expected_view
+    assert_map_view(exported, expected_view)
     if kind in ('hotmap', 'profile'):
         expect(exported.locator('canvas.leaflet-heatmap-layer')).to_be_visible()
     if kind == 'choropleth':
@@ -49,6 +62,20 @@ def verify_exports(context, page, prefix, directory, kind, pdf=False):
     assert not errors, errors
     exported.close()
     if pdf:
+        # Exercise the actual PDF template at the renderer's viewport size.
+        env = Environment(loader=FileSystemLoader(Path(__file__).resolve().parents[1] / 'app/templates'), autoescape=select_autoescape())
+        pdf_source = Path(directory) / f'{kind}-pdf.html'
+        pdf_source.write_text(env.get_template('export_pdf.html').render(
+            title='Prueba de encuadre', title_json=json.dumps('Prueba de encuadre'),
+            map_payload_json=json.dumps(payload), summary_json=json.dumps(payload['summary']),
+        ), encoding='utf-8')
+        pdf_page = context.new_page()
+        pdf_page.set_viewport_size({'width': 1440, 'height': 1080})
+        pdf_page.goto(pdf_source.as_uri(), wait_until='networkidle')
+        pdf_page.wait_for_function('window.__EXPORT_READY === true')
+        pdf_page.emulate_media(media='print')
+        assert_map_view(pdf_page, expected_view)
+        pdf_page.close()
         with page.expect_download(timeout=120000) as download:
             page.locator(f'#{prefix}export-pdf').click()
         target = Path(directory) / f'{kind}.pdf'
@@ -86,6 +113,7 @@ def main():
             if kind == 'heatmap':
                 assert response.value.json()['points'] == []
                 assert response.value.json()['map_config']['heat_palette'] == 'blues'
+            page.evaluate('appState.mapInstance.setView([-34.595, -58.405], 15, {animate: false})')
             verify_exports(context, page, '', directory, kind, pdf=kind in ('hotmap', 'heatmap', 'choropleth'))
             page.get_by_role('button', name='Cambiar mapa', exact=True).click()
 
@@ -112,6 +140,10 @@ def main():
         assert response.value.json()['profile']['crimes_used'] == 6
         page.locator('#rossmo-next-from-compute').click()
         expect(page.locator('#rossmo-map canvas.leaflet-heatmap-layer')).to_be_visible()
+        page.evaluate('rossmoState.mapInstance.setView([-34.595, -58.405], 15, {animate: false})')
+        page.locator('#rossmo-continue-analysis').click()
+        page.locator('#rossmo-back-to-preview').click()
+        page.wait_for_function('rossmoState.mapInstance.getZoom() === 15')
         page.locator('#rossmo-continue-analysis').click()
         page.locator('#rossmo-personal-analysis').fill('Hipotesis de clase: contrastar el anclaje con evidencia independiente.')
         page.locator('#rossmo-confirm-analysis').click()

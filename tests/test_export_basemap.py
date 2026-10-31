@@ -10,7 +10,8 @@ from test_cartography import request_data
 
 class ExportBasemapTest(unittest.TestCase):
     def test_local_export_replaces_osm_and_describes_actual_provider(self):
-        request = MapRequest(**request_data(map_type='hotmap'))
+        view = {'lat': -34.595, 'lon': -58.405, 'zoom': 15}
+        request = MapRequest(**request_data(map_type='hotmap', map_view=view))
         frame = pd.DataFrame({'lat': [-34.60, -34.61], 'lon': [-58.40, -58.41]})
         with patch('app.main.session_store.load_dataframe', return_value=frame):
             result = _build_export_payload(request)
@@ -19,6 +20,7 @@ class ExportBasemapTest(unittest.TestCase):
         self.assertEqual(result.cartography['basemap'], 'Esri Light Gray')
         self.assertTrue(any('OpenStreetMap' in item for item in result.cartography['warnings']))
         self.assertEqual(len(result.points), 2)
+        self.assertEqual(result.map_config.map_view.model_dump(), view)
 
     def test_export_preserves_other_selected_basemaps(self):
         frame = pd.DataFrame({'lat': [-34.60], 'lon': [-58.40]})

@@ -218,7 +218,7 @@
       return layer;
     }
 
-    const map = L.map("map", { zoomControl: false, attributionControl: true, fadeAnimation: false, zoomAnimation: false });
+    const map = L.map("map", { zoomControl: false, attributionControl: true, fadeAnimation: false, zoomAnimation: false, zoomSnap: 0 });
     const tile = tileLayers[config.tile_layer] || tileLayers["OpenStreetMap"];
     L.tileLayer(tile.url, tile.options).addTo(map);
 
@@ -264,7 +264,7 @@
       });
     }
 
-    if (bounds.length) map.fitBounds(bounds, { padding: [18, 18] }); else map.setView([-34.6037, -58.3816], 11);
+    applyExportMapView(map, config, bounds, [18, 18]);
 
     const reportDate = payload.cartography.created_at;
     document.getElementById("identity-grid").innerHTML = [

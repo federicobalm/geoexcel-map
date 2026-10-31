@@ -15,6 +15,27 @@
 .marker-cluster-large div { background: #526d82; color: white; }
 </style>
 <script>
+function readMapView(map) {
+  if (!map) return null;
+  // Rossmo exports from a later step, while its map container is hidden.
+  if (map.getContainer().offsetWidth && map.getContainer().offsetHeight) {
+    const center = map.wrapLatLng(map.getCenter());
+    map._exportView = { lat: center.lat, lon: center.lng, zoom: map.getZoom() };
+  }
+  return map._exportView ? { ...map._exportView } : null;
+}
+function trackMapView(map) {
+  map.on('moveend', () => readMapView(map));
+}
+function applyExportMapView(map, config, bounds, padding) {
+  if (config.map_view) {
+    map.setView([config.map_view.lat, config.map_view.lon], config.map_view.zoom, { animate: false });
+  } else if (bounds.length) {
+    map.fitBounds(bounds, { padding, animate: false });
+  } else {
+    map.setView([-34.6037, -58.3816], 11);
+  }
+}
 function apiErrorMessage(error, fallback = 'No se pudo completar la operación.') {
   const detail = error?.detail ?? error;
   if (typeof detail === 'string') return detail || fallback;

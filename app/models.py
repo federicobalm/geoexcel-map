@@ -41,6 +41,14 @@ class CartographicMetadata(BaseModel):
         return self
 
 
+class MapView(BaseModel):
+    model_config = ConfigDict(strict=True, allow_inf_nan=False)
+
+    lat: float = Field(ge=-90, le=90)
+    lon: float = Field(ge=-180, le=180)
+    zoom: float = Field(ge=0, le=19)
+
+
 class MapRequest(BaseModel):
     model_config = ConfigDict(strict=True)
 
@@ -69,6 +77,7 @@ class MapRequest(BaseModel):
     known_anchor_lat: float | None = Field(default=None, ge=-90, le=90)
     known_anchor_lon: float | None = Field(default=None, ge=-180, le=180)
     personal_analysis: str | None = None
+    map_view: MapView | None = None
 
     @field_validator("tile_layer", mode="before")
     @classmethod
