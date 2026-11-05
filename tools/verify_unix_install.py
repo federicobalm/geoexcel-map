@@ -34,7 +34,7 @@ def main():
             with (app / 'Contents/Info.plist').open('rb') as stream:
                 assert plistlib.load(stream)['CFBundleExecutable'] == 'GeoExcelMap'
             assert (app / 'Contents/Resources/GeoExcel.icns').stat().st_size > 0
-            assert (home / 'Desktop/GeoExcel Map.app').resolve() == app
+            assert (home / 'Desktop/GeoExcel Map.app').resolve() == app.resolve()
         else:
             desktop = home / '.local/share/applications/geoexcel-map.desktop'
             assert desktop.is_file() and os.access(desktop, os.X_OK)
