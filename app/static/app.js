@@ -179,8 +179,8 @@ function currentMapRequest() {
 
 function popupHtml(point) {
   const entries = Object.entries(point.popup || {});
-  const lines = entries.map(([key, value]) => `<div><strong>${key}:</strong> ${value}</div>`).join("");
-  return `${point.label ? `<div style="font-weight:700;margin-bottom:8px;">${point.label}</div>` : ""}${lines || "<span>Sin datos adicionales</span>"}`;
+  const lines = entries.map(([key, value]) => `<div><strong>${escapeHtml(key)}:</strong> ${escapeHtml(value)}</div>`).join("");
+  return `${point.label ? `<div style="font-weight:700;margin-bottom:8px;">${escapeHtml(point.label)}</div>` : ""}${lines || "<span>Sin datos adicionales</span>"}`;
 }
 
 function markerIcon(color) {
@@ -295,7 +295,7 @@ function renderLegend(payload) {
   payload.category_legend.forEach((item) => {
     const li = document.createElement("li");
     li.className = "legend-item";
-    li.innerHTML = `<span class="legend-swatch" style="background:${item.color}"></span><span>${item.category}</span>`;
+    li.innerHTML = `<span class="legend-swatch" style="background:${item.color}"></span><span>${escapeHtml(item.category)}</span>`;
     list.appendChild(li);
   });
   card.hidden = false;

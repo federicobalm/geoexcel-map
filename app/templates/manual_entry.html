@@ -1,0 +1,25 @@
+<details class="disclosure manual-entry" id="manual-entry">
+  <summary>Cargar eventos manualmente · sin archivo</summary>
+  <p class="manual-help">Completá los datos de cada evento ficticio y presioná Agregar. Latitud y longitud son obligatorias; podés usar punto o coma decimal. Hasta 500 eventos.</p>
+  <form id="manual-event-form" class="stack-form">
+    <div class="config-grid">
+      <div><label for="manual-caso">Identificador del evento (opcional)</label><input id="manual-caso" name="caso" type="text" maxlength="100" placeholder="Ej.: Caso 1"></div>
+      <div><label for="manual-tipo">Tipo de evento (opcional)</label><input id="manual-tipo" name="tipo" type="text" maxlength="100" placeholder="Ej.: robo ficticio"></div>
+      <div><label for="manual-latitud">Latitud</label><input id="manual-latitud" name="latitud" type="text" inputmode="decimal" required placeholder="Ej.: -34,6037" aria-describedby="manual-coordinates-help"></div>
+      <div><label for="manual-longitud">Longitud</label><input id="manual-longitud" name="longitud" type="text" inputmode="decimal" required placeholder="Ej.: -58,3816" aria-describedby="manual-coordinates-help"></div>
+      <div><label for="manual-fecha">Fecha (opcional)</label><input id="manual-fecha" name="fecha" type="date"></div>
+      <div><label for="manual-hora">Hora (opcional)</label><input id="manual-hora" name="hora" type="time"></div>
+      <div><label for="manual-zona">Zona (opcional)</label><input id="manual-zona" name="zona" type="text" maxlength="100"></div>
+      <div><label for="manual-barrio">Barrio (opcional)</label><input id="manual-barrio" name="barrio" type="text" maxlength="100"></div>
+    </div>
+    <p id="manual-coordinates-help" class="manual-help">Usá grados decimales: latitud entre −90 y 90, longitud entre −180 y 180. Una dirección escrita no se convierte automáticamente en coordenadas.</p>
+    <div><label for="manual-descripcion">Descripción (opcional)</label><textarea id="manual-descripcion" name="descripcion" maxlength="1000" rows="2"></textarea></div>
+    <div class="dual-actions"><button id="manual-save" type="submit" class="secondary-button">Agregar evento</button><button id="manual-cancel" type="button" class="text-button" hidden>Cancelar edición</button></div>
+  </form>
+  <p id="manual-feedback" class="manual-feedback" role="status" aria-live="polite"></p>
+  <div class="table-shell" id="manual-table-wrap" hidden>
+    <table><caption>Eventos cargados manualmente</caption><thead><tr><th>Evento</th><th>Latitud</th><th>Longitud</th><th>Fecha / hora</th><th>Tipo</th><th>Acciones</th></tr></thead><tbody id="manual-rows"></tbody></table>
+  </div>
+  <div class="stage-actions"><span id="manual-count">0 eventos cargados</span><button id="manual-continue" type="button" class="primary-button" disabled>Usar estos eventos y continuar</button></div>
+  <p class="manual-help">El borrador se conserva al volver a este paso, pero se pierde si recargás o cerrás la página. Al continuar se crea un conjunto de datos nuevo; no se mezcla con un archivo cargado.</p>
+</details>

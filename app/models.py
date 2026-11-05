@@ -20,6 +20,45 @@ class UploadSummary(BaseModel):
     notes: list[str]
 
 
+class ManualEvent(BaseModel):
+    model_config = ConfigDict(strict=True, str_strip_whitespace=True, allow_inf_nan=False)
+
+    caso: str = Field(default='', max_length=100)
+    latitud: float = Field(ge=-90, le=90)
+    longitud: float = Field(ge=-180, le=180)
+    fecha: str = ''
+    hora: str = Field(default='', pattern=r'^(?:[01]\d|2[0-3]):[0-5]\d$|^$')
+    tipo: str = Field(default='', max_length=100)
+    zona: str = Field(default='', max_length=100)
+    barrio: str = Field(default='', max_length=100)
+    descripcion: str = Field(default='', max_length=1000)
+
+    @field_validator('latitud', 'longitud', mode='before')
+    @classmethod
+    def decimal_coordinate(cls, value):
+        if isinstance(value, str):
+            try:
+                return float(value.strip().replace(',', '.'))
+            except ValueError:
+                raise ValueError('Ingresa una coordenada numerica en grados decimales.') from None
+        return value
+
+    @field_validator('fecha')
+    @classmethod
+    def valid_event_date(cls, value):
+        if value:
+            try:
+                date.fromisoformat(value)
+            except ValueError:
+                raise ValueError('Ingresa una fecha valida (AAAA-MM-DD).') from None
+        return value
+
+
+class ManualDatasetRequest(BaseModel):
+    model_config = ConfigDict(strict=True)
+    events: list[ManualEvent] = Field(min_length=1, max_length=500)
+
+
 class CartographicMetadata(BaseModel):
     model_config = ConfigDict(strict=True, str_strip_whitespace=True)
     event: str = Field(min_length=2, max_length=100)

@@ -15,6 +15,9 @@
 .marker-cluster-large div { background: #526d82; color: white; }
 </style>
 <script>
+function escapeHtml(value) {
+  return String(value).replace(/[&<>"']/g, character => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'}[character]));
+}
 function readMapView(map) {
   if (!map) return null;
   // Rossmo exports from a later step, while its map container is hidden.

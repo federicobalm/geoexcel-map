@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import math
-from io import BytesIO
+from io import BytesIO, StringIO
 
 import pandas as pd
 
@@ -13,9 +13,21 @@ LON_KEYWORDS = ("lon", "lng", "long", "longitud", "longitude", "coordenada_x", "
 
 def read_uploaded_table(filename: str, content: bytes) -> pd.DataFrame:
     lowered_name = filename.lower()
+    if not content:
+        raise AppError('El archivo esta vacio. Agrega al menos un evento o usa la carga manual.')
     if lowered_name.endswith(".csv"):
         try:
-            return pd.read_csv(BytesIO(content), sep=None, engine="python", encoding_errors="replace")
+            try:
+                text = content.decode('utf-8-sig')
+            except UnicodeDecodeError:
+                text = content.decode('cp1252')
+            separator = None
+            lines = text.splitlines(keepends=True)
+            first_line = lines[0].strip() if lines else ''
+            if len(first_line) == 5 and first_line[:4].lower() == 'sep=':
+                separator = first_line[4]
+                text = ''.join(lines[1:])
+            return pd.read_csv(StringIO(text), sep=separator, engine="python")
         except Exception as exc:
             raise AppError(f"No se pudo leer el CSV: {exc}") from exc
     if lowered_name.endswith(".xlsx"):
@@ -27,8 +39,21 @@ def read_uploaded_table(filename: str, content: bytes) -> pd.DataFrame:
 
 
 def prepare_dataframe(df: pd.DataFrame) -> pd.DataFrame:
-    sanitized = df.copy()
-    sanitized.columns = [str(col).strip() or f"Columna_{index + 1}" for index, col in enumerate(sanitized.columns)]
+    sanitized = df.dropna(how='all').copy()
+    if sanitized.empty:
+        raise AppError('No hay eventos en la planilla. Inclui una fila de encabezados y al menos una fila de datos, o usa la carga manual.')
+    if len(sanitized.columns) < 2:
+        raise AppError('La planilla necesita columnas separadas de latitud y longitud. Revisa el separador del CSV o usa la carga manual.')
+    columns, used = [], set()
+    for index, column in enumerate(sanitized.columns):
+        base = str(column).strip().lstrip('\ufeff') or f'Columna_{index + 1}'
+        name, suffix = base, 2
+        while name in used:
+            name = f'{base}_{suffix}'
+            suffix += 1
+        used.add(name)
+        columns.append(name)
+    sanitized.columns = columns
     sanitized = sanitized.fillna("")
     return sanitized
 

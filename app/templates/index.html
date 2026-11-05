@@ -22,6 +22,7 @@
       <button type="submit" class="primary-button">Cargar y continuar</button>
     </form>
     <div class="demo-row"><div><strong>¿Es tu primer mapa?</strong><p>Probá con 300 casos ficticios de Buenos Aires.</p></div><button id="load-demo" type="button" class="secondary-button">Usar ejemplo</button></div>
+    {% include 'manual_entry.html' %}
   </section>
 
   <section id="map-stage-2" class="stage configure-stage" hidden aria-labelledby="configure-heading">
@@ -86,7 +87,9 @@
 {% include "heat_palettes.html" %}
 {% include "cartography.html" %}
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<script src="https://unpkg.com/leaflet.heat/dist/leaflet-heat.js"></script>
+<script src="https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js"></script>
 <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
 <script src="{{ url_for('static', path='app.js') }}?v=20261030-map-view"></script>
+<script src="{{ url_for('static', path='manual-entry.js') }}?v=1"></script>
+<script>initManualEntry(upload => { populateValidation(upload); hideFeedback(); goToMapStep(2); });</script>
 {% endblock %}

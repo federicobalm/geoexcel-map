@@ -7,6 +7,12 @@ body { margin: 0; background: var(--bg); color: var(--text); font: 15px/1.5 "Seg
 .app-footer-credits p { color: var(--text); }
 .app-footer-credits a { overflow-wrap: anywhere; }
 .app-footer .academic-notice { margin: 20px 0 0; }
+.manual-entry { margin-top: 24px; }
+.manual-entry input[type="text"], .manual-entry input[type="date"], .manual-entry input[type="time"] { width: 100%; min-height: 44px; padding: 10px; border: 1px solid #b8c8cd; border-radius: 7px; }
+.manual-help { font-size: 13px; margin: 12px 0; }
+.manual-feedback { margin: 16px 0; color: var(--accent); overflow-wrap: anywhere; }
+.manual-feedback.is-error { color: var(--bad); }
+.manual-entry caption { padding: 10px; text-align: left; font-weight: 600; }
 ::selection { background: #c7e9de; color: #153a32; }
 :focus-visible { outline: 3px solid #257eaf; outline-offset: 4px; }
 button, input, select, textarea { font: inherit; }

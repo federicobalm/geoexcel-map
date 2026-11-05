@@ -251,8 +251,8 @@ function currentRequest() {
 
 function popupHtml(point) {
   const entries = Object.entries(point.popup || {});
-  const lines = entries.map(([key, value]) => `<div><strong>${key}:</strong> ${value}</div>`).join("");
-  return `${point.label ? `<div style="font-weight:700;margin-bottom:8px;">${point.label}</div>` : ""}${lines || "<span>Sin datos adicionales</span>"}`;
+  const lines = entries.map(([key, value]) => `<div><strong>${escapeHtml(key)}:</strong> ${escapeHtml(value)}</div>`).join("");
+  return `${point.label ? `<div style="font-weight:700;margin-bottom:8px;">${escapeHtml(point.label)}</div>` : ""}${lines || "<span>Sin datos adicionales</span>"}`;
 }
 
 function markerIcon(color) {

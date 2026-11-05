@@ -41,9 +41,27 @@ El instalador descarga GeoExcel Map, prepara Python si hace falta, instala las d
 
 El instalador aprovecha Python 3.11–3.13 cuando está disponible mediante `py`; en caso contrario instala Python 3.12 de python.org para el usuario, verificando su firma digital.
 
+## Instalación para alumnos · Linux y macOS
+
+Abrí una terminal y ejecutá este comando **como tu usuario habitual, sin anteponer `sudo`**:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/federicobalm/geoexcel-map/main/scripts/install.sh | bash
+```
+
+- **Linux:** Ubuntu 22.04, 24.04 o 26.04; Debian 12 o 13. Arquitecturas x86-64 y ARM64. Requiere `curl`, `tar` y permisos de `sudo` para instalar las bibliotecas de Chromium. Puede pedir tu contraseña.
+- **macOS:** macOS 14 (Sonoma) o posterior, tanto Intel como Apple Silicon. No requiere Homebrew.
+- Instala una copia aislada de Python 3.12 mediante uv, las dependencias de la aplicación y Chromium para los PDF.
+- En Linux crea un acceso en el menú de aplicaciones y en el escritorio si está habilitado. Algunos escritorios requieren hacer clic derecho y elegir **Permitir lanzar**.
+- En macOS crea **GeoExcel Map.app** en `~/Applications` y un enlace en el escritorio. Al abrirla se inicia una ventana de Terminal y, cuando el servidor está listo, el navegador.
+- Dejá abierta la terminal del servidor mientras trabajás; usá `Ctrl+C` para terminar.
+- Para **actualizar**, cerrá la aplicación y repetí el mismo comando. Conserva `data/` y `.env`.
+- Ubicaciones: Linux, `~/.local/share/geoexcel-map` (o `$XDG_DATA_HOME/geoexcel-map`); macOS, `~/Library/Application Support/GeoExcel-Map`.
+- Se necesita Internet para instalar y para cargar los fondos de mapa. El comando y el instalador de **Windows no cambian**.
+
 ## Vista general
 
-1. Cargas un `csv` o `xlsx`.
+1. Cargás un `csv` o `xlsx`, o ingresás los eventos manualmente sin archivo.
 2. La app sugiere columnas de latitud y longitud.
 3. Valida filas problemáticas y resume errores.
 4. Genera mapas de puntos, calor clásico, KDE, coropleta por grilla, proporcionales, cluster o categoria.
@@ -51,6 +69,12 @@ El instalador aprovecha Python 3.11–3.13 cuando está disponible mediante `py`
 6. Exporta el resultado como `HTML` o `PDF`.
 
 Las exportaciones conservan el **centro y el nivel de zoom** que estás usando al pulsar Descargar. Acercá y desplazá el mapa antes de exportar para elegir la vista inicial del HTML y la vista del PDF. En Rossmo se conserva la vista elegida en el paso de previsualización.
+
+### Carga manual de eventos
+
+En el primer paso de **Crear mapas** y de **Análisis Rossmo**, abrí **Cargar eventos manualmente · sin archivo**. Completá latitud y longitud y presioná **Agregar evento**. También podés indicar identificador, tipo, fecha, hora, zona, barrio y descripción. Las coordenadas admiten punto o coma decimal.
+
+Podés agregar hasta 500 eventos, editarlos o quitarlos antes de pulsar **Usar estos eventos y continuar**. Después se utilizan los mismos pasos de configuración, análisis y exportación que con una planilla. Guardá cada evento antes de continuar. El borrador manual se pierde al recargar o cerrar la página; cargar estos eventos reemplaza el conjunto activo, no se combina con otro archivo.
 
 ## Objetivo
 

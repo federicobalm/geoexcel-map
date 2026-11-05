@@ -12,7 +12,8 @@ from fastapi.templating import Jinja2Templates
 
 from app.config import settings
 from app.errors import AppError
-from app.models import MapPreviewResponse, MapRequest, MapSummary, UploadSummary
+from app.models import ManualDatasetRequest, MapPreviewResponse, MapRequest, MapSummary, UploadSummary
+import pandas as pd
 from app.services.datasets import (
     build_points_payload,
     detect_coordinate_columns,
@@ -62,11 +63,16 @@ async def validation_error_handler(_: Request, exc: RequestValidationError) -> J
         "synthetic": "Confirmación de datos ficticios", "period_confirmed": "Confirmación del período",
         "buffer_radius_m": "Buffer Rossmo (m)", "known_anchor_lat": "Latitud del anclaje",
         "known_anchor_lon": "Longitud del anclaje",
+        "latitud": "Latitud", "longitud": "Longitud", "fecha": "Fecha", "hora": "Hora",
     }
     messages = []
     for error in exc.errors():
         field = str(error["loc"][-1]) if error["loc"] else "body"
         label = labels.get(field, "Configuración" if field == "body" else field)
+        if 'events' in error['loc']:
+            position = error['loc'].index('events') + 1
+            if len(error['loc']) > position and isinstance(error['loc'][position], int):
+                label = f"Evento {error['loc'][position] + 1} · {label}"
         message = error["msg"].removeprefix("Value error, ")
         if error["type"] == "missing":
             message = "Completa este campo."
@@ -108,14 +114,26 @@ async def upload_file(file: UploadFile = File(...)) -> UploadSummary:
         raise AppError(f"El archivo supera el limite de {settings.max_upload_mb} MB.")
 
     raw_df = await asyncio.to_thread(read_uploaded_table, file.filename, content)
-    prepared_df = await asyncio.to_thread(prepare_dataframe, raw_df)
-    suggested_lat, suggested_lon, notes = await asyncio.to_thread(detect_coordinate_columns, prepared_df)
-    category_columns = await asyncio.to_thread(suggest_category_columns, prepared_df)
-    label_columns = await asyncio.to_thread(suggest_label_columns, prepared_df)
-    preview = await asyncio.to_thread(preview_rows, prepared_df)
+    return await asyncio.to_thread(_create_upload_summary, file.filename, raw_df)
+
+
+@app.post('/api/manual-data', response_model=UploadSummary)
+async def manual_data(data: ManualDatasetRequest) -> UploadSummary:
+    records = [event.model_dump() for event in data.events]
+    for index, record in enumerate(records, start=1):
+        record['caso'] = record['caso'] or f'Evento {index}'
+    return await asyncio.to_thread(_create_upload_summary, 'Carga_manual.csv', pd.DataFrame(records))
+
+
+def _create_upload_summary(filename: str, raw_df: pd.DataFrame) -> UploadSummary:
+    prepared_df = prepare_dataframe(raw_df)
+    suggested_lat, suggested_lon, notes = detect_coordinate_columns(prepared_df)
+    category_columns = suggest_category_columns(prepared_df)
+    label_columns = suggest_label_columns(prepared_df)
+    preview = preview_rows(prepared_df)
 
     session_id = session_store.create(
-        file.filename,
+        filename,
         prepared_df,
         {
             "row_count": int(len(prepared_df)),
@@ -131,7 +149,7 @@ async def upload_file(file: UploadFile = File(...)) -> UploadSummary:
 
     return UploadSummary(
         session_id=session_id,
-        filename=file.filename,
+        filename=filename,
         row_count=int(len(prepared_df)),
         column_count=int(len(prepared_df.columns)),
         columns=list(prepared_df.columns),

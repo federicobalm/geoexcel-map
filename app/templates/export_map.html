@@ -130,7 +130,7 @@
   {% include "basemaps.html" %}
   {% include "cartography.html" %}
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <script src="https://unpkg.com/leaflet.heat/dist/leaflet-heat.js"></script>
+  <script src="https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js"></script>
   <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
   <script>
 
@@ -166,8 +166,8 @@
     }
 
     function popupHtml(point) {
-      const rows = Object.entries(point.popup || {}).map(([key, value]) => `<div><strong>${key}:</strong> ${value}</div>`).join("");
-      return `${point.label ? `<h4>${point.label}</h4>` : ""}${rows || "<span>Sin atributos adicionales</span>"}`;
+      const rows = Object.entries(point.popup || {}).map(([key, value]) => `<div><strong>${escapeHtml(key)}:</strong> ${escapeHtml(value)}</div>`).join("");
+      return `${point.label ? `<h4>${escapeHtml(point.label)}</h4>` : ""}${rows || "<span>Sin atributos adicionales</span>"}`;
     }
 
     function markerIcon(color) {
