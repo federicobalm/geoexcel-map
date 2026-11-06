@@ -448,12 +448,12 @@ byId("rossmo-upload-form").addEventListener("submit", async (event) => {
 byId("rossmo-load-dataset").addEventListener("click", async () => {
   try {
     setFeedback("Cargando dataset demo de Rossmo...");
-    const response = await fetch("/sample_data/serie_rossmo_demo.csv");
+    const response = await fetch("/sample_data/serie_rossmo_demo.xlsx");
     if (!response.ok) {
       throw new Error("No se pudo descargar el dataset demo.");
     }
     const blob = await response.blob();
-    const file = new File([blob], "serie_rossmo_demo.csv", { type: "text/csv" });
+    const file = new File([blob], "serie_rossmo_demo.xlsx", { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
     await uploadSelectedFile(file);
   } catch (error) {
     setFeedback(error.message, true);

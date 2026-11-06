@@ -124,6 +124,7 @@ def main():
         errors = []
         page.on('pageerror', lambda error: errors.append(str(error)))
         page.goto(args.url, wait_until='networkidle')
+        expect(page.get_by_role('link', name='Descargar ejemplo Excel')).to_have_attribute('href', '/sample_data/plantilla_geoexcel_map.xlsx')
         page.locator('#load-demo').click()
         expect(page.locator('#map-stage-2')).to_be_visible()
         fill_metadata(page, 'map')
@@ -159,6 +160,7 @@ def main():
         assert page.evaluate("apiErrorMessage({detail:{message:'Revisar datos'}})") == 'Revisar datos'
 
         page.goto(args.url + '/rossmo', wait_until='networkidle')
+        expect(page.get_by_role('link', name='Descargar ejemplo Rossmo')).to_have_attribute('href', '/sample_data/serie_rossmo_demo.xlsx')
         page.locator('#rossmo-load-dataset').click()
         expect(page.locator('#rossmo-next-from-upload')).to_be_enabled()
         page.locator('#rossmo-next-from-upload').click()

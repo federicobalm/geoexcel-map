@@ -132,13 +132,14 @@ Prueba de navegador con el servidor en marcha: `python tools/verify_flows.py --u
 
 ## Datos de ejemplo
 
-1. `sample_data/plantilla_geoexcel_map.csv` sirve para probar el flujo completo.
-2. `sample_data/ejemplo.xlsx` queda como referencia de formato alternativo.
-3. `sample_data/serie_rossmo_demo.csv` sirve para probar el perfilador con una serie vinculada de 6 hechos.
+1. `sample_data/plantilla_geoexcel_map.xlsx` sirve para probar y editar el flujo completo de mapas comunes con 300 casos ficticios.
+2. `sample_data/serie_rossmo_demo.xlsx` sirve para probar y editar el perfilador con una serie vinculada de 6 hechos.
+
+Ambos ejemplos son libros Excel editables. La primera fila contiene los encabezados y cada fila siguiente representa un evento, por lo que pueden modificarse y volver a cargarse directamente en lote.
 
 Ejemplo de plantilla:
 
-```csv
+```text
 caso,latitud,longitud,tipo,zona,descripcion
 Caso 1,-34.6037,-58.3816,Robo,Centro,Hecho en zona comercial
 Caso 2,-34.6158,-58.4333,Hurto,Sur,Registro cercano a avenida principal

@@ -2,7 +2,7 @@
 {% block title %}Crear un mapa | {{ app_name }}{% endblock %}
 {% block body %}
 <main class="page-shell" id="main-content">
-  <div class="page-heading"><div><h1>De tu planilla al mapa.</h1><p>Cargá tus datos, elegí cómo verlos y explorá.</p></div><a href="/sample_data/plantilla_geoexcel_map.csv" download class="ghost-link">Descargar ejemplo CSV</a></div>
+  <div class="page-heading"><div><h1>De tu planilla al mapa.</h1><p>Cargá tus datos, elegí cómo verlos y explorá.</p></div><a href="/sample_data/plantilla_geoexcel_map.xlsx" download class="ghost-link">Descargar ejemplo Excel</a></div>
   <nav class="flow-progress" aria-label="Pasos para crear un mapa">
     <button type="button" data-map-step="1" aria-current="step"><span>1</span>Tus datos</button>
     <button type="button" data-map-step="2" disabled><span>2</span>Elegí un mapa</button>
@@ -93,7 +93,7 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js"></script>
 <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
-<script src="{{ url_for('static', path='app.js') }}?v=20261106-export-analysis"></script>
+<script src="{{ url_for('static', path='app.js') }}?v=20261106-xlsx-samples"></script>
 <script src="{{ url_for('static', path='manual-entry.js') }}?v=1"></script>
 <script>initManualEntry(upload => { populateValidation(upload); hideFeedback(); goToMapStep(2); });</script>
 {% endblock %}

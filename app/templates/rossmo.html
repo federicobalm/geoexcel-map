@@ -7,7 +7,7 @@
       <h1>Análisis Rossmo</h1>
       <p>De una serie de hechos a tu informe, paso a paso.</p>
     </div>
-    <a href="/sample_data/serie_rossmo_demo.csv" download class="ghost-link">Descargar ejemplo Rossmo</a>
+    <a href="/sample_data/serie_rossmo_demo.xlsx" download class="ghost-link">Descargar ejemplo Rossmo</a>
   </header>
 
   <div id="rossmo-feedback" class="inline-feedback" role="status" aria-live="polite" hidden></div>
@@ -232,7 +232,7 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js"></script>
 <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
-<script src="{{ url_for('static', path='rossmo.js') }}?v=20261106-classic-surface"></script>
+<script src="{{ url_for('static', path='rossmo.js') }}?v=20261106-xlsx-samples"></script>
 <script src="{{ url_for('static', path='manual-entry.js') }}?v=1"></script>
 <script>initManualEntry(upload => { populateUpload(upload); hideFeedback(); goToStep(2); });</script>
 {% endblock %}

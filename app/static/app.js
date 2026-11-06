@@ -546,11 +546,11 @@ byId("load-demo").addEventListener("click", async () => {
   setBusy(true);
   setFeedback("Cargando el ejemplo de Buenos Aires…");
   try {
-    const response = await fetch("/sample_data/plantilla_geoexcel_map.csv");
+    const response = await fetch("/sample_data/plantilla_geoexcel_map.xlsx");
     if (!response.ok) throw new Error("No pudimos cargar el ejemplo. Volvé a intentarlo.");
     const blob = await response.blob();
     setBusy(false);
-    await uploadDataset(new File([blob], "Ejemplo_CABA_300_casos.csv", { type: "text/csv" }));
+    await uploadDataset(new File([blob], "Ejemplo_CABA_300_casos.xlsx", { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" }));
   } catch (error) {
     setBusy(false);
     setFeedback(error.message, true);
