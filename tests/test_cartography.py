@@ -6,6 +6,7 @@ from pydantic import ValidationError
 
 from app.models import MapRequest, MapSummary
 from app.services.cartography import build_cartography, gaussian_density
+from app.services.profiling import build_geographic_profile
 
 
 def request_data(**overrides):
@@ -75,6 +76,14 @@ class CartographicRulesTest(unittest.TestCase):
         self.assertTrue(np.isfinite(one['values']).all())
         self.assertGreaterEqual(min(one['values']), 0)
         self.assertNotIn('points', one)
+
+    def test_rossmo_surface_keeps_a_visible_percentile_for_dispersed_series(self):
+        frame = pd.DataFrame({
+            'lat': [-34.43, -34.54, -34.66, -34.72, -34.91],
+            'lon': [-57.86, -58.55, -58.70, -58.43, -58.85],
+        })
+        profile = build_geographic_profile(frame, MapRequest(**request_data(map_type='profile')))
+        self.assertGreaterEqual(len(profile.jeopardy_points), profile.grid_rows * profile.grid_cols * 0.25)
 
     def test_geopositioning_denominator_and_duplicates(self):
         frame = pd.DataFrame({'lat': [-34.6, -34.6], 'lon': [-58.4, -58.4]})

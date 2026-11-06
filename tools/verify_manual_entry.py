@@ -3,20 +3,21 @@ import argparse
 from tempfile import TemporaryDirectory
 
 from playwright.sync_api import expect, sync_playwright
-from verify_flows import fill_metadata, verify_exports
+from verify_flows import assert_classic_heat, fill_metadata, verify_exports
 
 
-def enter_events(page):
+def enter_events(page, coordinates=None):
     page.locator('#manual-entry summary').click()
     page.fill('#manual-latitud', '91')
     page.fill('#manual-longitud', '-58,40')
     page.click('#manual-save')
     expect(page.locator('#manual-rows tr')).to_have_count(0)
     assert not page.locator('#manual-latitud').evaluate('(input) => input.validity.valid')
-    for index in range(6):
+    coordinates = coordinates or [(-34.60 - .001 * index, -58.40 - .001 * index) for index in range(6)]
+    for index, (lat, lon) in enumerate(coordinates):
         page.fill('#manual-caso', f'Caso {index + 1}')
-        page.fill('#manual-latitud', str(-34.60 - .001 * index).replace('.', ','))
-        page.fill('#manual-longitud', str(-58.40 - .001 * index).replace('.', ','))
+        page.fill('#manual-latitud', str(lat).replace('.', ','))
+        page.fill('#manual-longitud', str(lon).replace('.', ','))
         page.fill('#manual-fecha', '2026-01-01')
         page.fill('#manual-hora', '12:30')
         page.fill('#manual-tipo', 'Tipo A' if index % 2 else 'Tipo B')
@@ -76,7 +77,10 @@ def main():
         expect(page.locator('#manual-rows tr')).to_have_count(5)
 
         page.goto(url + '/rossmo', wait_until='networkidle')
-        enter_events(page)
+        enter_events(page, [
+            (-34.43, -57.86), (-34.54, -58.55), (-34.66, -58.70),
+            (-34.72, -58.43), (-34.91, -58.85), (-34.80, -58.20),
+        ])
         expect(page.locator('#step-verify')).to_be_visible()
         fill_metadata(page, 'rossmo')
         page.click('#rossmo-verify-form button[type=submit]')
@@ -85,8 +89,10 @@ def main():
             page.click('#rossmo-compute-form button[type=submit]')
         assert response.value.status == 200, response.value.text()
         assert response.value.json()['profile']['crimes_used'] == 5
+        assert len(response.value.json()['profile']['jeopardy_points']) >= 10000
         page.click('#rossmo-next-from-compute')
         expect(page.locator('#rossmo-map canvas')).to_be_visible()
+        assert_classic_heat(page)
         page.click('#rossmo-continue-analysis')
         page.fill('#rossmo-personal-analysis', 'Interpretación académica de la serie ficticia.')
         page.click('#rossmo-confirm-analysis')

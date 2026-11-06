@@ -34,13 +34,16 @@ def assert_classic_heat(page):
         const canvas = document.querySelector('canvas.leaflet-heatmap-layer');
         if (!canvas) return false;
         const pixels = canvas.getContext('2d').getImageData(0, 0, canvas.width, canvas.height).data;
-        const rendered = [...Array(Math.floor(pixels.length / 4)).keys()].some(index => pixels[index * 4 + 3] > 0);
+        let renderedPixels = 0;
+        for (let index = 3; index < pixels.length; index += 4) {
+            if (pixels[index] > 0) renderedPixels += 1;
+        }
         let gradient = null;
         const targetMap = typeof appState !== 'undefined' ? appState.mapInstance : (typeof rossmoState !== 'undefined' ? rossmoState.mapInstance : map);
         targetMap.eachLayer(layer => {
             if (layer._heat && layer.options?.gradient) gradient = Object.values(layer.options.gradient);
         });
-        return rendered && ['#0000ff', '#00ffff', '#00ff00', '#ffff00', '#ff0000'].every(color => gradient?.includes(color));
+        return renderedPixels >= 100 && ['#0000ff', '#00ffff', '#00ff00', '#ffff00', '#ff0000'].every(color => gradient?.includes(color));
     }"""), 'Expected a rendered heat layer with the five classic colors'
 
 
@@ -60,6 +63,8 @@ def verify_exports(context, page, prefix, directory, kind, pdf=False):
     exported.on('request', lambda request: osm_requests.append(request.url) if 'tile.openstreetmap.org/' in request.url else None)
     exported.goto(html.as_uri(), wait_until='networkidle')
     expect(exported.locator('.cartographic-legend')).to_be_visible()
+    expect(exported.get_by_role('heading', name='Análisis sistematizado', exact=True)).to_be_visible()
+    expect(exported.get_by_role('heading', name='Interpretación del estudiante', exact=True)).to_be_visible()
     exported.wait_for_function("""() => {
         const tiles = [...document.querySelectorAll('#map img.leaflet-tile')];
         return tiles.length > 0 && tiles.every(tile => tile.complete && tile.naturalWidth > 0);
@@ -71,6 +76,9 @@ def verify_exports(context, page, prefix, directory, kind, pdf=False):
     assert payload['map_config']['map_view'] == expected_view
     assert payload['map_config']['personal_analysis'] == expected_analysis
     expect(exported.locator('#personal-analysis')).to_have_text(expected_analysis)
+    if not prefix:
+        assert exported.locator('#systematic-list li').count() == 3
+        assert exported.locator('#systematic-list').evaluate("(element) => Boolean(element.compareDocumentPosition(document.querySelector('#map')) & Node.DOCUMENT_POSITION_FOLLOWING)")
     assert_map_view(exported, expected_view)
     if kind in ('hotmap', 'profile'):
         expect(exported.locator('canvas.leaflet-heatmap-layer')).to_be_visible()

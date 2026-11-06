@@ -77,7 +77,7 @@ def build_geographic_profile(df, map_request: MapRequest) -> GeographicProfile:
         normalized = (scores - score_min) / (score_max - score_min)
 
     percentile_cutoff = 0.72 if crimes_used >= 5 else 0.82
-    cutoff = max(float(np.quantile(normalized, percentile_cutoff)), 0.15)
+    cutoff = float(np.quantile(normalized, percentile_cutoff))
     jeopardy_mask = normalized >= cutoff
 
     jeopardy_x = grid_x[jeopardy_mask]
