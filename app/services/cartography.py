@@ -59,6 +59,20 @@ def build_cartography(request, summary, df, density=None):
     if duplicate_count:
         warnings.append(f'{duplicate_count} registros comparten coordenadas. Revisar centroides, alturas imputadas y duplicados antes de interpretar concentraciones.')
     warnings.append('El periodo fue declarado y confirmado por el analista; no se verificaron fechas individuales ni precision de direcciones.')
+    analyses = {
+        'points': 'La distribución puntual permite observar ubicación y dispersión, pero la superposición puede ocultar eventos coincidentes.',
+        'category': 'Los colores permiten comparar la distribución espacial de categorías nominales; no expresan orden, magnitud ni riesgo.',
+        'cluster': 'Los grupos resumen proximidad en pantalla y cambian con el zoom; deben abrirse antes de interpretar patrones locales.',
+        'proportional': 'Los símbolos comparan frecuencias en coordenadas coincidentes mediante su área; no representan tasas poblacionales.',
+        'heatmap': 'La superficie KDE describe una densidad suavizada sensible al ancho de banda y a los límites del área estudiada.',
+        'hotmap': 'Las zonas cálidas muestran concentración relativa sensible al radio y al zoom; no equivalen a densidades ni probabilidades.',
+        'choropleth': 'Las diferencias entre celdas describen conteos dentro de esta grilla y pueden cambiar al modificar su tamaño o alineación.',
+    }
+    systematic_analysis = [
+        f'Se representaron {summary.valid_rows} de {summary.total_rows} registros ({round(100 * summary.valid_rows / total, 2) if total else 0} % con coordenadas válidas).',
+        analyses.get(request.map_type, 'La representación debe interpretarse según sus parámetros y limitaciones metodológicas.'),
+        'Las concentraciones observadas son descriptivas. Toda hipótesis requiere contraste con evidencia independiente y teoría aplicable.',
+    ]
     return {
         'title': f'{meta.event} · {meta.geographic_unit} · {meta.period_start} a {meta.period_end}',
         'author': meta.author, 'created_at': datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M UTC'),
@@ -66,5 +80,6 @@ def build_cartography(request, summary, df, density=None):
         'geocoding_percentage': round(100 * summary.valid_rows / total, 2) if total else 0,
         'geocoding_description': f'{summary.valid_rows}/{total} registros con coordenadas validas. Cobertura de geoposicionamiento; no acredita geocodificacion de direcciones ni exactitud posicional.',
         'synthetic': True, 'warnings': warnings,
+        'systematic_analysis': systematic_analysis,
         'limitation': 'Concentracion y correlacion espacial no implican causalidad. Aplicar un proceso hipotetico-deductivo: contrastar hipotesis con evidencia independiente y teorias de Actividades Rutinarias y Patron Delictivo. La agregacion no garantiza por si sola anonimato ni cumplimiento de la Ley 25.326.',
     }

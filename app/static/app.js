@@ -132,6 +132,7 @@ function populateValidation(upload) {
   byId('map-period-confirmed').checked = false;
   byId('map-synthetic').checked = false;
   appState.mapPayload = null;
+  byId("map-personal-analysis").value = "";
   byId("validation-empty").hidden = true;
   byId("validation-content").hidden = false;
   byId("summary-filename").textContent = upload.filename;
@@ -173,7 +174,7 @@ function currentMapRequest() {
     scale_constant: 1.0,
     known_anchor_lat: null,
     known_anchor_lon: null,
-    personal_analysis: null,
+    personal_analysis: byId("map-personal-analysis").value.trim() || null,
   };
 }
 
@@ -319,6 +320,16 @@ function renderIssues(summary) {
   });
 }
 
+function renderSystematicAnalysis(items) {
+  const list = byId("map-systematic-analysis");
+  list.innerHTML = "";
+  (items || []).forEach((item) => {
+    const li = document.createElement("li");
+    li.textContent = item;
+    list.appendChild(li);
+  });
+}
+
 function renderMap(payload) {
   const map = ensureMap();
   setBasemap(map, payload.map_config.tile_layer);
@@ -377,6 +388,7 @@ function renderMap(payload) {
   }
   renderLegend(payload);
   renderIssues(payload.summary);
+  renderSystematicAnalysis(payload.cartography.systematic_analysis);
   addCartography(map, payload);
   byId("export-html").disabled = false;
   byId("export-pdf").disabled = false;
@@ -396,7 +408,11 @@ async function postJson(url, payload) {
 }
 
 async function downloadExport(url) {
-  const request = { ...appState.mapPayload.map_config, map_view: readMapView(appState.mapInstance) };
+  const request = {
+    ...appState.mapPayload.map_config,
+    map_view: readMapView(appState.mapInstance),
+    personal_analysis: byId("map-personal-analysis").value.trim() || null,
+  };
   const response = await postJson(url, request);
   const blob = await response.blob();
   const disposition = response.headers.get("Content-Disposition") || "";

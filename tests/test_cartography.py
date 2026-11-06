@@ -82,6 +82,8 @@ class CartographicRulesTest(unittest.TestCase):
         report = build_cartography(MapRequest(**request_data()), summary, frame)
         self.assertEqual(report['geocoding_percentage'], 50)
         self.assertTrue(any('comparten coordenadas' in text for text in report['warnings']))
+        self.assertEqual(len(report['systematic_analysis']), 3)
+        self.assertIn('2 de 4 registros', report['systematic_analysis'][0])
         self.assertIn('2026-01-28', report['title'])
 
 

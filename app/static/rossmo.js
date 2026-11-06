@@ -306,7 +306,7 @@ function renderMap(payload) {
       radius: 20,
       blur: 24,
       minOpacity: 0.28,
-      gradient: heatGradient('blues'),
+      gradient: heatGradient('classic'),
     }));
   }
   payload.points.forEach((point) => {

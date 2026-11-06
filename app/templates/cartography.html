@@ -20,11 +20,8 @@ function escapeHtml(value) {
 }
 function readMapView(map) {
   if (!map) return null;
-  // Rossmo exports from a later step, while its map container is hidden.
-  if (map.getContainer().offsetWidth && map.getContainer().offsetHeight) {
-    const center = map.wrapLatLng(map.getCenter());
-    map._exportView = { lat: center.lat, lon: center.lng, zoom: map.getZoom() };
-  }
+  const center = map.wrapLatLng(map.getCenter());
+  map._exportView = { lat: center.lat, lon: center.lng, zoom: map.getZoom() };
   return map._exportView ? { ...map._exportView } : null;
 }
 function trackMapView(map) {
@@ -99,8 +96,8 @@ function addCartography(map, payload) {
     paragraph(legend, 'Radio = 6 × √frecuencia en píxeles. El área, no el radio, representa la cantidad. Cada ubicación agrupa coordenadas exactamente coincidentes.');
   } else if (payload.map_config.map_type === 'profile') {
     paragraph(legend, 'Puntos: hechos ficticios. Círculo destacado: anclaje estimado. Superficie: prioridad relativa CGT, no predicción de un próximo hecho.');
-    const ramp = document.createElement('div'); ramp.className = 'cartographic-ramp'; ramp.style.background = 'linear-gradient(to right, #eff3ff, #bdd7e7, #6baed6, #3182bd, #08519c)'; legend.appendChild(ramp);
-    paragraph(legend, 'Azul claro → oscuro: menor → mayor prioridad relativa. Visualización suavizada del subconjunto de celdas seleccionado por el motor; no clases de tasas ni probabilidades.');
+    const ramp = document.createElement('div'); ramp.className = 'cartographic-ramp'; ramp.style.background = 'linear-gradient(to right, #0000ff, #00ffff, #00ff00, #ffff00, #ff0000)'; legend.appendChild(ramp);
+    paragraph(legend, 'Azul → cian → verde → amarillo → rojo: menor → mayor prioridad relativa. Visualización suavizada del subconjunto de celdas seleccionado por el motor; no clases de tasas ni probabilidades.');
   } else {
     paragraph(legend, 'Marcadores: ubicaciones de eventos ficticios. Tamaño uniforme, excepto círculos de agrupación que indican la cantidad contenida.');
   }

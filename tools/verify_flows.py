@@ -29,8 +29,25 @@ def assert_map_view(page, expected):
         assert abs(actual[key] - expected[key]) < 1e-7, (key, actual, expected)
 
 
+def assert_classic_heat(page):
+    assert page.evaluate("""() => {
+        const canvas = document.querySelector('canvas.leaflet-heatmap-layer');
+        if (!canvas) return false;
+        const pixels = canvas.getContext('2d').getImageData(0, 0, canvas.width, canvas.height).data;
+        const rendered = [...Array(Math.floor(pixels.length / 4)).keys()].some(index => pixels[index * 4 + 3] > 0);
+        let gradient = null;
+        const targetMap = typeof appState !== 'undefined' ? appState.mapInstance : (typeof rossmoState !== 'undefined' ? rossmoState.mapInstance : map);
+        targetMap.eachLayer(layer => {
+            if (layer._heat && layer.options?.gradient) gradient = Object.values(layer.options.gradient);
+        });
+        return rendered && ['#0000ff', '#00ffff', '#00ff00', '#ffff00', '#ff0000'].every(color => gradient?.includes(color));
+    }"""), 'Expected a rendered heat layer with the five classic colors'
+
+
 def verify_exports(context, page, prefix, directory, kind, pdf=False):
     state = 'rossmoState' if prefix else 'appState'
+    analysis_id = '#rossmo-personal-analysis' if prefix else '#map-personal-analysis'
+    expected_analysis = page.locator(analysis_id).input_value()
     expected_view = page.evaluate(f'readMapView({state}.mapInstance)')
     with page.expect_download(timeout=90000) as download:
         page.locator(f'#{prefix}export-html').click()
@@ -52,9 +69,12 @@ def verify_exports(context, page, prefix, directory, kind, pdf=False):
     expect(exported.locator('.cartographic-legend')).to_contain_text('Esri Light Gray sustituye a OpenStreetMap')
     payload = exported.evaluate('window.GEOEXCEL_EXPORT_PAYLOAD')
     assert payload['map_config']['map_view'] == expected_view
+    assert payload['map_config']['personal_analysis'] == expected_analysis
+    expect(exported.locator('#personal-analysis')).to_have_text(expected_analysis)
     assert_map_view(exported, expected_view)
     if kind in ('hotmap', 'profile'):
         expect(exported.locator('canvas.leaflet-heatmap-layer')).to_be_visible()
+        assert_classic_heat(exported)
     if kind == 'choropleth':
         assert exported.locator('.leaflet-overlay-pane path').count() > 0
     if kind == 'heatmap':
@@ -110,10 +130,13 @@ def main():
             if kind == 'hotmap':
                 assert response.value.json()['map_config']['heat_palette'] == 'classic'
                 expect(page.locator('canvas.leaflet-heatmap-layer')).to_be_visible()
+                assert_classic_heat(page)
             if kind == 'heatmap':
                 assert response.value.json()['points'] == []
                 assert response.value.json()['map_config']['heat_palette'] == 'blues'
             page.evaluate('appState.mapInstance.setView([-34.595, -58.405], 15, {animate: false})')
+            expect(page.locator('#map-systematic-analysis li')).to_have_count(3)
+            page.locator('#map-personal-analysis').fill(f'Interpretación académica para {kind}.')
             verify_exports(context, page, '', directory, kind, pdf=kind in ('hotmap', 'heatmap', 'choropleth'))
             page.get_by_role('button', name='Cambiar mapa', exact=True).click()
 
@@ -140,6 +163,7 @@ def main():
         assert response.value.json()['profile']['crimes_used'] == 6
         page.locator('#rossmo-next-from-compute').click()
         expect(page.locator('#rossmo-map canvas.leaflet-heatmap-layer')).to_be_visible()
+        assert_classic_heat(page)
         page.evaluate('rossmoState.mapInstance.setView([-34.595, -58.405], 15, {animate: false})')
         page.locator('#rossmo-continue-analysis').click()
         page.locator('#rossmo-back-to-preview').click()

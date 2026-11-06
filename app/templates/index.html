@@ -78,6 +78,10 @@
     <div class="result-toolbar"><div><h2 id="result-heading" tabindex="-1">Tu mapa está listo</h2><p id="result-map-type">Mapa de puntos</p></div><div class="toolbar-actions"><button type="button" class="secondary-button" data-go-step="2">Cambiar mapa</button><button id="export-html" class="secondary-button" disabled>Descargar HTML</button><button id="export-pdf" class="primary-button" disabled>Descargar PDF</button></div></div>
     <div class="map-frame"><div id="map"></div><div id="map-empty" class="map-placeholder">Preparando tu mapa…</div><button id="fit-map" class="map-fit" type="button">Ver todos los puntos</button></div>
     <div class="result-meta"><span><strong id="valid-rows">0</strong> puntos en el mapa</span><span><strong id="invalid-rows">0</strong> filas excluidas</span><span>Acercá el mapa para explorar</span></div>
+    <div class="analysis-grid common-analysis">
+      <section class="panel"><h3>Análisis sistematizado</h3><ul id="map-systematic-analysis"></ul></section>
+      <section class="panel"><h3><label for="map-personal-analysis">Tu interpretación</label></h3><textarea id="map-personal-analysis" class="analysis-textarea" placeholder="Redactá tu interpretación académica, las hipótesis espaciales y los criterios que deberían contrastarse."></textarea></section>
+    </div>
     <div class="result-details"><details class="disclosure"><summary>Revisar datos excluidos</summary><ul id="issues-list"></ul></details><div id="legend-card" class="legend-card" hidden><h3>Referencias</h3><ul id="legend-list"></ul></div></div>
   </section>
 </main>
@@ -89,7 +93,7 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js"></script>
 <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
-<script src="{{ url_for('static', path='app.js') }}?v=20261030-map-view"></script>
+<script src="{{ url_for('static', path='app.js') }}?v=20261106-export-analysis"></script>
 <script src="{{ url_for('static', path='manual-entry.js') }}?v=1"></script>
 <script>initManualEntry(upload => { populateValidation(upload); hideFeedback(); goToMapStep(2); });</script>
 {% endblock %}

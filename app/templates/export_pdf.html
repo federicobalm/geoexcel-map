@@ -239,7 +239,7 @@
     } else if (config.map_type === "profile" && profile) {
       const jeopardy = profile.jeopardy_points || [];
       if (jeopardy.length) {
-        L.heatLayer(jeopardy, { radius: 20, blur: 24, minOpacity: 0.28, gradient: heatGradient('blues') }).addTo(map);
+        L.heatLayer(jeopardy, { radius: 20, blur: 24, minOpacity: 0.28, gradient: heatGradient('classic') }).addTo(map);
         jeopardy.forEach(point => bounds.push([point[0], point[1]]));
       }
       points.forEach(point => {
@@ -320,7 +320,7 @@
       ["Registros representados", summary.valid_rows],
     ]);
 
-    list("systematic-list", profile ? [...profile.systematic_analysis, ...profile.notes] : [], "No se genero analisis sistematizado para este tipo de mapa.");
+    list("systematic-list", profile ? [...profile.systematic_analysis, ...profile.notes] : payload.cartography.systematic_analysis, "No se genero analisis sistematizado para este tipo de mapa.");
     document.getElementById("personal-analysis").textContent = personalAnalysis;
     list("quality-list", [...(summary.invalid_breakdown || []), ...(profile ? profile.warnings : [])], "No se detectaron advertencias criticas en los datos exportados.");
 
